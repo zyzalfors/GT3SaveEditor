@@ -1,4 +1,4 @@
-# GT3 Save Editor
+# Gran Turismo 3 Save Editor
 This GUI tool allows to read and edit saves of PlayStation 2 game Gran Turismo 3, it works with all game versions.
 
 It can read and edit only raw save data that can be extracted from other formats (e.g., .cbs, .max, .psv, .psu, .sbs, .xps).
