@@ -5,7 +5,7 @@ It can read and edit only raw save data that can be extracted from other formats
 
 This tool can read and edit days, races, wins, cash, prize, trophies, bonus car count, cash, language.
 
-Good tools that allow to convert between raw and other save formats are:
+Good tools that allow to manipulate various PS2 save formats are:
 - https://www.ps2savetools.com/download/ps2-save-converter
 - https://gamebanana.com/tools/6658
 - https://github.com/Adubbz/mymcplusplus
