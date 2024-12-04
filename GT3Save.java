@@ -209,7 +209,6 @@ public class GT3Save {
     }
 
     public void Update() throws Exception {
-        if(!Files.exists(Paths.get(_path))) return;
         UpdateCrc32();
         Files.write(Paths.get(_path), _bytes);
     }

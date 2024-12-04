@@ -9,6 +9,7 @@ public class Form extends JFrame {
     private JTextField[] _textFields = new JTextField[9];
     private JComboBox<String> _combo;
     private JMenuItem _open;
+    private JMenuItem _update;
     private JMenuItem _close;
     private GT3Save _save;
 
@@ -20,10 +21,12 @@ public class Form extends JFrame {
 
     private void BuildUI() {
         _open = new JMenuItem("Open");
+        _update = new JMenuItem("Update");
         _close = new JMenuItem("Close");
 
         JMenu menu = new JMenu("File");
         menu.add(_open);
+        menu.add(_update);
         menu.add(_close);
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(menu);
@@ -62,6 +65,7 @@ public class Form extends JFrame {
     private void AddEventHandlers() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         _open.addActionListener((ActionEvent e) -> OpenSave());
+        _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
     }
 
@@ -122,7 +126,7 @@ public class Form extends JFrame {
         }
     }
 
-    private void CloseSave() {
+    private void UpdateSave() {
         try {
             if(_save == null) return;
 
@@ -146,22 +150,26 @@ public class Form extends JFrame {
 
             int bonusCars = Integer.valueOf(_textFields[8].getText());
             _save.UpdateBonusCars(bonusCars);
-     
-            String lang = (String) _combo.getSelectedItem();        
+
+            String lang = (String) _combo.getSelectedItem();
             _save.UpdateLang(lang);
 
             _save.Update();
-
-            for(JTextField textField : _textFields) {
-                textField.setText(null);
-                textField.setEnabled(false);
-            }
-            _combo.setEnabled(false);
-            _save = null;
+            JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private void CloseSave() {
+    	UpdateSave();
+        for(JTextField textField : _textFields) {
+            textField.setText(null);
+            textField.setEnabled(false);
+        }
+        _combo.setEnabled(false);
+        _save = null;
     }
 
 }
