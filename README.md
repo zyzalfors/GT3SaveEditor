@@ -6,8 +6,6 @@ The tool supports reading and editing raw save data, which can be extracted from
 Users can modify several game parameters, including days, races, wins, cash, prizes, trophies, bonus car count, and language settings.
 
 For handling and converting PS2 save files in different formats, the following tools are recommended:
-
-Good tools that allow to manipulate various PS2 save formats are:
 - https://www.ps2savetools.com/download/ps2-save-converter
 - https://gamebanana.com/tools/6658
 - https://github.com/Adubbz/mymcplusplus
