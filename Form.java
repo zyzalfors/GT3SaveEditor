@@ -4,8 +4,8 @@ import java.awt.event.*;
 import javax.swing.*;
 
 public class Form extends JFrame {
-    private static String title = "GT3 Save Editor";
-    private static String[] labels = new String[] {"Path:", "Days:", "Races:", "Wins:", "Cash:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
+    private static final String title = "GT3 Save Editor";
+    private static final String[] labels = new String[] {"Days:", "Races:", "Wins:", "Cash:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
     private JTextField[] _textFields = new JTextField[9];
     private JComboBox<String> _combo;
     private JMenuItem _open;
@@ -14,48 +14,62 @@ public class Form extends JFrame {
     private GT3Save _save;
 
     public Form(String path) {
-        super(title);
+        super(Form.title);
         BuildUI();
         PrintData(path);
     }
 
     private void BuildUI() {
         _open = new JMenuItem("Open");
+
         _update = new JMenuItem("Update");
+        _update.setEnabled(false);
+
         _close = new JMenuItem("Close");
+        _close.setEnabled(false);
 
         JMenu menu = new JMenu("File");
         menu.add(_open);
         menu.add(_update);
         menu.add(_close);
+
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(menu);
 
-        int i = 0;
-        for(i = 0; i < labels.length - 1; i++) {
+        for(int i = 0; i < labels.length - 1; i++) {
             JLabel label = new JLabel(labels[i]);
             label.setBounds(0, i * 30, 80, 20);
             add(label);
+
             JTextField textField = new JTextField();
-            textField.setBounds(80, i * 30, 350, 20);
+            textField.setBounds(80, i * 30, 180, 20);
             textField.setEnabled(false);
+            add(textField);
+
             _textFields[i] = textField;
-            add(_textFields[i]);
         }
 
+        int i = labels.length - 1;
         JLabel label = new JLabel(labels[i]);
         label.setBounds(0, i * 30, 80, 20);
         add(label);
+
         Set<String> langs = new HashSet<String>(GT3Save.languages.keySet());
-        langs.add("unknown");
+        langs.add("Unknown");
+
         _combo = new JComboBox<>(langs.toArray(String[]::new));
-        _combo.setBounds(80, i * 30, 350, 20);
+        _combo.setBounds(80, i * 30, 180, 20);
         _combo.setEnabled(false);
         add(_combo);
 
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch(Exception e) {}
+
         setJMenuBar(menuBar);
         getContentPane().setLayout(null);
-        setSize(480, 360);
+        setSize(280, 330);
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(false);
@@ -72,57 +86,59 @@ public class Form extends JFrame {
     private void OpenSave() {
         JFileChooser chooser = new JFileChooser();
         int sel = chooser.showOpenDialog(null);
-        if(sel == JFileChooser.APPROVE_OPTION) {
-            String path = chooser.getSelectedFile().getAbsolutePath();
-            PrintData(path);
-        }
+        if(sel == JFileChooser.APPROVE_OPTION) PrintData(chooser.getSelectedFile().getAbsolutePath());
     }
 
     private void PrintData(String path) {
         try {
             if(path == null) return;
-            _save = new GT3Save(path);
-            if(!_save.CheckCrc32()) JOptionPane.showMessageDialog(null, "Invalid Save", "Error", JOptionPane.INFORMATION_MESSAGE);
 
-            _textFields[0].setText(path);
+            _save = new GT3Save(path);
+            if(!_save.CheckCrc32()) JOptionPane.showMessageDialog(null, "Invalid checksum", "Error", JOptionPane.INFORMATION_MESSAGE);
 
             int days = _save.GetDays();
-            _textFields[1].setEnabled(true);
-            _textFields[1].setText(String.valueOf(days));
+            _textFields[0].setEnabled(true);
+            _textFields[0].setText(String.valueOf(days));
 
             int races = _save.GetRaces();
-            _textFields[2].setEnabled(true);
-            _textFields[2].setText(String.valueOf(races));
+            _textFields[1].setEnabled(true);
+            _textFields[1].setText(String.valueOf(races));
 
             int wins = _save.GetWins();
-            _textFields[3].setEnabled(true);
-            _textFields[3].setText(String.valueOf(wins));
+            _textFields[2].setEnabled(true);
+            _textFields[2].setText(String.valueOf(wins));
 
             long cash = _save.GetCash();
-            _textFields[4].setEnabled(true);
-            _textFields[4].setText(String.valueOf(cash));
+            _textFields[3].setEnabled(true);
+            _textFields[3].setText(String.valueOf(cash));
 
             long prize = _save.GetPrize();
-            _textFields[5].setEnabled(true);
-            _textFields[5].setText(String.valueOf(prize));
+            _textFields[4].setEnabled(true);
+            _textFields[4].setText(String.valueOf(prize));
 
             int carCount = _save.GetCarCount();
-            _textFields[6].setText(String.valueOf(carCount));
+            _textFields[5].setEnabled(true);
+            _textFields[5].setEditable(false);
+            _textFields[5].setText(String.valueOf(carCount));
 
             int trophies = _save.GetTrophies();
-            _textFields[7].setEnabled(true);
-            _textFields[7].setText(String.valueOf(trophies));
+            _textFields[6].setEnabled(true);
+            _textFields[6].setText(String.valueOf(trophies));
 
             int bonusCars = _save.GetBonusCars();
-            _textFields[8].setEnabled(true);
-            _textFields[8].setText(String.valueOf(bonusCars));
+            _textFields[7].setEnabled(true);
+            _textFields[7].setText(String.valueOf(bonusCars));
 
             String lang = _save.GetLang();
             _combo.setEnabled(true);
             _combo.setSelectedItem(lang);
+
+            _update.setEnabled(true);
+            _close.setEnabled(true);
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            ClearData();
         }
     }
 
@@ -162,14 +178,22 @@ public class Form extends JFrame {
         }
     }
 
-    private void CloseSave() {
-    	UpdateSave();
+    private void ClearData() {
+        _update.setEnabled(false);
+        _close.setEnabled(false);
+
         for(JTextField textField : _textFields) {
             textField.setText(null);
             textField.setEnabled(false);
         }
+
         _combo.setEnabled(false);
         _save = null;
+    }
+
+    private void CloseSave() {
+        UpdateSave();
+        ClearData();
     }
 
 }
