@@ -67,9 +67,9 @@ public class GT3Save {
     }
 
     private static int BytesToInt(byte[] bytes) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        return byteBuffer.getInt();
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        return buffer.getInt();
     }
 
     private static byte[] LongToBytes(long val) {
@@ -80,9 +80,9 @@ public class GT3Save {
     }
 
     private static long BytesToLong(byte[] bytes) {
-        ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        return byteBuffer.getLong();
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        return buffer.getLong();
     }
 
     private int CalcCrc32() {
@@ -91,9 +91,11 @@ public class GT3Save {
             if((_bytes[i] & 0xFF) != 0xFF) paddingSize++;
             else break;
         }
+
         int toOffset = _bytes.length - paddingSize;
         if(toOffset < _headerSize) toOffset = _headerSize;
         byte[] crc32Buffer = Arrays.copyOfRange(_bytes, _headerSize, toOffset);
+
         CRC32 crc32 = new CRC32();
         crc32.update(crc32Buffer);
         return (int) crc32.getValue();
@@ -194,10 +196,9 @@ public class GT3Save {
         return Convert(BytesToInt(bytes));
     }
 
-    public void UpdateLang(String lang) throws Exception {
-        int langByte = languages.containsKey(lang) ? languages.get(lang) : 0;
-        if(langByte == 0) throw new Exception("Invalid language");
-        _bytes[_langOffset] = (byte) langByte;
+    public void UpdateLang(String lang) {
+        if(!languages.containsKey(lang)) return;
+        _bytes[_langOffset] = (byte) ((int) languages.get(lang));
     }
 
     public String GetLang() {
@@ -205,7 +206,7 @@ public class GT3Save {
         for(String lang : languages.keySet()) {
             if((int) languages.get(lang) == langByte) return lang;
         }
-        return "unknown";
+        return "Unknown";
     }
 
     public void Update() throws Exception {
