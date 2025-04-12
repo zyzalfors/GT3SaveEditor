@@ -6,7 +6,7 @@ import javax.swing.*;
 public class Form extends JFrame {
     private static final String title = "GT3 Save Editor";
     private static final String[] labels = new String[] {"Days:", "Races:", "Wins:", "Cash:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
-    private JTextField[] _textFields = new JTextField[9];
+    private JTextField[] _textFields = new JTextField[8];
     private JComboBox<String> _combo;
     private JMenuItem _open;
     private JMenuItem _update;
@@ -14,7 +14,7 @@ public class Form extends JFrame {
     private GT3Save _save;
 
     public Form(String path) {
-        super(Form.title);
+        super(title);
         BuildUI();
         PrintData(path);
     }
