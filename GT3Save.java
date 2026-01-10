@@ -1,217 +1,273 @@
 package GT3SaveEditor;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.zip.CRC32;
+import java.nio.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.zip.*;
 
 public class GT3Save {
     private final byte[] _bytes;
     private final String _path;
 
-    private final int _headerOffset = 0;
-    private final int _headerSize = 64;
+    private static final int _headerOffset = 0;
+    private static final int _headerSize = 64;
 
-    private final int _crc32Offset = 12;
-    private final int _crc32Size = 4;
+    private static final int _crc32Offset = 12;
+    private static final int _crc32Size = 4;
 
-    private final int _daysOffset = 64;
-    private final int _daysSize = 4;
+    private static final int _daysOffset = 64;
+    private static final int _daysSize = 4;
 
-    private final int _racesOffset = 68;
-    private final int _racesSize = 4;
+    private static final int _racesOffset = 68;
+    private static final int _racesSize = 4;
 
-    private final int _winsOffset = 76;
-    private final int _winsSize = 4;
+    private static final int _winsOffset = 76;
+    private static final int _winsSize = 4;
 
-    private final int _cashOffset = 80;
-    private final int _cashSize = 8;
+    private static final int _moneyOffset = 80;
+    private static final int _moneySize = 8;
 
-    private final int _prizeOffset = 88;
-    private final int _prizeSize = 8;
+    private static final int _prizeOffset = 88;
+    private static final int _prizeSize = 8;
 
-    private final int _carCountOffset = 112;
-    private final int _carCountSize = 4;
+    private static final int _carCountOffset = 112;
+    private static final int _carCountSize = 4;
 
-    private final int _trophiesOffset = 240;
-    private final int _trophiesSize = 4;
+    private static final int _trophiesOffset = 240;
+    private static final int _trophiesSize = 4;
 
-    private final int _bonusCarsOffset = 252;
-    private final int _bonusCarsSize = 4;
+    private static final int _bonusCarsOffset = 252;
+    private static final int _bonusCarsSize = 4;
 
-    private final int _langOffset = 264;
-    private final int _langSize = 1;
+    private static final int _langOffset = 264;
+    private static final int _langSize = 1;
+    public static final Map<String, Integer> languages = Map.of("ES", 0xF9, "IT", 0xFA, "DE", 0xFB, "FR", 0xFC, "EN-GB", 0xFD, "EN-US", 0xFE, "JA", 0xFF);
 
-    public final static Map<String, Integer> languages = Map.of("ES", 0xF9, "IT", 0xFA, "DE", 0xFB, "FR", 0xFC, "EN-GB", 0xFD, "EN-US/JA", 0xFE);
+    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANG};
 
     public GT3Save(String path) throws Exception {
         _path = path;
         _bytes = Files.readAllBytes(Paths.get(path));
     }
 
-    private static int Convert(int val) {
-        return -1 * (val + 1);
-    }
-
-    private static long Convert(long val) {
-        return -1 * (val + 1);
-    }
-
-    private static byte[] IntToBytes(int val) {
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        buffer.putInt(val);
-        return buffer.array();
-    }
-
-    private static int BytesToInt(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        return buffer.getInt();
-    }
-
-    private static byte[] LongToBytes(long val) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        buffer.putLong(val);
-        return buffer.array();
-    }
-
-    private static long BytesToLong(byte[] bytes) {
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        return buffer.getLong();
-    }
-
     private int CalcCrc32() {
-        int paddingSize = 0;
+        int padding = 0;
+
         for(int i = _bytes.length - 1; i >= 0; i--) {
-            if((_bytes[i] & 0xFF) != 0xFF) paddingSize++;
+            if((_bytes[i] & 0xFF) != 0xFF) padding++;
             else break;
         }
 
-        int toOffset = _bytes.length - paddingSize;
+        int toOffset = _bytes.length - padding;
         if(toOffset < _headerSize) toOffset = _headerSize;
-        byte[] crc32Buffer = Arrays.copyOfRange(_bytes, _headerSize, toOffset);
+        byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset);
 
         CRC32 crc32 = new CRC32();
-        crc32.update(crc32Buffer);
+        crc32.update(bytes);
         return (int) crc32.getValue();
-    }
-
-    public boolean CheckCrc32() {
-        int calcCrc32 = CalcCrc32();
-        byte[] crc32Bytes = Arrays.copyOfRange(_bytes, _crc32Offset, _crc32Offset + _crc32Size);
-        int crc32 = BytesToInt(crc32Bytes);
-        return crc32 == calcCrc32;
     }
 
     public void UpdateCrc32() {
         int crc32 = CalcCrc32();
-        byte[] crc32Bytes = IntToBytes(crc32);
-        for(int i = 0; i < _crc32Size; i++) _bytes[_crc32Offset + i] = crc32Bytes[i];
+        UpdateInt(VALUE.CRC32, crc32);
     }
 
-    public void UpdateDays(int days) {
-        int val = Convert(days);
-        byte[] bytes = IntToBytes(val);
-        for(int i = 0; i < _daysSize; i++) _bytes[_daysOffset + i] = bytes[i];
+    public boolean CheckCrc32() {
+        int calcCrc32 = CalcCrc32();
+        int crc32 = GetInt(VALUE.CRC32);
+        return crc32 == calcCrc32;
     }
 
-    public int GetDays() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _daysOffset, _daysOffset + _daysSize);
-        return Convert(BytesToInt(bytes));
-    }
+    public int GetInt(VALUE value) {
+        int offset = 0;
+        int size = 0;
+        boolean conv = true;
 
-    public void UpdateRaces(int races) {
-        int val = Convert(races);
-        byte[] bytes = IntToBytes(val);
-        for(int i = 0; i < _racesSize; i++) _bytes[_racesOffset + i] = bytes[i];
-    }
+        switch(value) {
+            case CRC32:
+                offset = _crc32Offset;
+                size = _crc32Size;
+                conv = false;
+                break;
 
-    public int GetRaces() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _racesOffset, _racesOffset + _racesSize);
-        return Convert(BytesToInt(bytes));
-    }
+            case DAYS:
+                offset = _daysOffset;
+                size = _daysSize;
+                break;
 
-    public void UpdateWins(int wins) {
-        int val = Convert(wins);
-        byte[] bytes = IntToBytes(val);
-        for(int i = 0; i < _winsSize; i++) _bytes[_winsOffset + i] = bytes[i];
-    }
+            case RACES:
+                offset = _racesOffset;
+                size = _racesSize;
+                break;
 
-    public int GetWins() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _winsOffset, _winsOffset + _winsSize);
-        return Convert(BytesToInt(bytes));
-    }
+            case WINS:
+                offset = _winsOffset;
+                size = _winsSize;
+                break;
 
-    public void UpdateCash(long cash) {
-        long val = Convert(cash);
-        byte[] bytes = LongToBytes(val);
-        for(int i = 0; i < _cashSize; i++) _bytes[_cashOffset + i] = bytes[i];
-    }
+            case CAR_COUNT:
+                offset = _carCountOffset;
+                size = _carCountSize;
+                break;
 
-    public long GetCash() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _cashOffset, _cashOffset + _cashSize);
-        return Convert(BytesToLong(bytes));
-    }
+            case TROPHIES:
+                offset = _trophiesOffset;
+                size = _trophiesSize;
+                break;
 
-    public void UpdatePrize(long prize) {
-        long val = Convert(prize);
-        byte[] bytes = LongToBytes(val);
-        for(int i = 0; i < _prizeSize; i++) _bytes[_prizeOffset + i] = bytes[i];
-    }
+            case BONUS_CARS:
+                offset = _bonusCarsOffset;
+                size = _bonusCarsSize;
+                break;
 
-    public long GetPrize() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _prizeOffset, _prizeOffset + _prizeSize);
-        return Convert(BytesToLong(bytes));
-    }
-
-    public int GetCarCount() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _carCountOffset, _carCountOffset + _carCountSize);
-        return Convert(BytesToInt(bytes));
-    }
-
-    public void UpdateTrophies(int trophies) {
-        int val = Convert(trophies);
-        byte[] bytes = IntToBytes(val);
-        for(int i = 0; i < _trophiesSize; i++) _bytes[_trophiesOffset + i] = bytes[i];
-    }
-
-    public int GetTrophies() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _trophiesOffset, _trophiesOffset + _trophiesSize);
-        return Convert(BytesToInt(bytes));
-    }
-
-    public void UpdateBonusCars(int cars) {
-        int val = Convert(cars);
-        byte[] bytes = IntToBytes(val);
-        for(int i = 0; i < _bonusCarsSize; i++) _bytes[_bonusCarsOffset + i] = bytes[i];
-    }
-
-    public int GetBonusCars() {
-        byte[] bytes = Arrays.copyOfRange(_bytes, _bonusCarsOffset, _bonusCarsOffset + _bonusCarsSize);
-        return Convert(BytesToInt(bytes));
-    }
-
-    public void UpdateLang(String lang) {
-        if(!languages.containsKey(lang)) return;
-        _bytes[_langOffset] = (byte) ((int) languages.get(lang));
-    }
-
-    public String GetLang() {
-        int langByte = _bytes[_langOffset] & 0xFF;
-        for(String lang : languages.keySet()) {
-            if((int) languages.get(lang) == langByte) return lang;
+            default:
+                return 0;
         }
-        return "Unknown";
+
+        byte[] bytes = Arrays.copyOfRange(_bytes, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        int val = buffer.getInt();
+
+        return conv ? -1 * (val + 1) : val;
+    }
+
+    public void UpdateInt(VALUE value, int val) {
+        int offset = 0;
+        int size = 0;
+        boolean conv = true;
+
+        switch(value) {
+            case CRC32:
+                offset = _crc32Offset;
+                size = _crc32Size;
+                conv = false;
+                break;
+
+            case DAYS:
+                offset = _daysOffset;
+                size = _daysSize;
+                break;
+
+            case RACES:
+                offset = _racesOffset;
+                size = _racesSize;
+                break;
+
+            case WINS:
+                offset = _winsOffset;
+                size = _winsSize;
+                break;
+
+            case CAR_COUNT:
+                offset = _carCountOffset;
+                size = _carCountSize;
+                break;
+
+            case TROPHIES:
+                offset = _trophiesOffset;
+                size = _trophiesSize;
+                break;
+
+            case BONUS_CARS:
+                offset = _bonusCarsOffset;
+                size = _bonusCarsSize;
+                break;
+
+            default:
+                return;
+        }
+
+        if(conv) val = -1 * (val + 1);
+
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putInt(val);
+        byte[] bytes = buffer.array();
+
+        for(int i = 0; i < size; i++) _bytes[offset + i] = bytes[i];
+    }
+
+    public long GetLong(VALUE value) {
+        int offset = 0;
+        int size = 0;
+
+        switch(value) {
+            case MONEY:
+                offset = _moneyOffset;
+                size = _moneySize;
+                break;
+
+            case PRIZE:
+                offset = _prizeOffset;
+                size = _prizeSize;
+                break;
+
+            default:
+                return 0;
+        }
+
+        byte[] bytes = Arrays.copyOfRange(_bytes, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        long val = buffer.getLong();
+
+        return -1 * (val + 1);
+    }
+
+    public void UpdateLong(VALUE value, long val) {
+        int offset = 0;
+        int size = 0;
+
+        switch(value) {
+            case MONEY:
+                offset = _moneyOffset;
+                size = _moneySize;
+                break;
+
+            case PRIZE:
+                offset = _prizeOffset;
+                size = _prizeSize;
+                break;
+
+            default:
+                return;
+        }
+
+        val = -1 * (val + 1);
+
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putLong(val);
+        byte[] bytes = buffer.array();
+
+        for(int i = 0; i < size; i++) _bytes[offset + i] = bytes[i];
+    }
+
+    public String GetStr(VALUE value) {
+        switch(value) {
+            case PATH:
+                return _path;
+
+            case LANG:
+                int b = _bytes[_langOffset] & 0xFF;
+                for(String lang : languages.keySet()) {
+                    if(((int) languages.get(lang)) == b) return lang;
+                }
+                break;
+        }
+        return "";
+    }
+
+    public void UpdateStr(VALUE value, String val) {
+        switch(value) {
+            case LANG:
+                if(languages.containsKey(val)) _bytes[_langOffset] = (byte) ((int) languages.get(val));
+                break;
+        }
     }
 
     public void Update() throws Exception {
         UpdateCrc32();
         Files.write(Paths.get(_path), _bytes);
     }
-
 }

@@ -1,12 +1,14 @@
 package GT3SaveEditor;
 import java.util.*;
+import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import GT3SaveEditor.GT3Save.*;
 
 public class Form extends JFrame {
-    private static final String title = "GT3 Save Editor";
-    private static final String[] labels = new String[] {"Days:", "Races:", "Wins:", "Cash:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
-    private JTextField[] _textFields = new JTextField[8];
+    private static final String _title = "GT3 Save Editor";
+    private static final String[] _labels = new String[] {"Path:", "Checksum:", "Days:", "Races:", "Wins:", "Money:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
+    private JTextField[] _texts = new JTextField[_labels.length - 1];
     private JComboBox<String> _combo;
     private JMenuItem _open;
     private JMenuItem _update;
@@ -14,7 +16,7 @@ public class Form extends JFrame {
     private GT3Save _save;
 
     public Form(String path) {
-        super(title);
+        super(_title);
         BuildUI();
         PrintData(path);
     }
@@ -36,40 +38,37 @@ public class Form extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(menu);
 
-        for(int i = 0; i < labels.length - 1; i++) {
-            JLabel label = new JLabel(labels[i]);
-            label.setBounds(0, i * 30, 80, 20);
+        for(int i = 0; i < _texts.length; i++) {
+            JLabel label = new JLabel(_labels[i]);
+            label.setBounds(10, 5 + i * 30, 80, 20);
             add(label);
 
-            JTextField textField = new JTextField();
-            textField.setBounds(80, i * 30, 180, 20);
-            textField.setEnabled(false);
-            add(textField);
+            JTextField text = new JTextField();
+            text.setBounds(80, 5 + i * 30, 300, 20);
+            text.setEnabled(false);
+            add(text);
 
-            _textFields[i] = textField;
+            _texts[i] = text;
         }
 
-        int i = labels.length - 1;
-        JLabel label = new JLabel(labels[i]);
-        label.setBounds(0, i * 30, 80, 20);
+        int i = _texts.length;
+        JLabel label = new JLabel(_labels[i]);
+        label.setBounds(10, 5 + i * 30, 80, 20);
         add(label);
 
-        Set<String> langs = new HashSet<String>(GT3Save.languages.keySet());
-        langs.add("Unknown");
+        ArrayList<String> langs = new ArrayList<String>(GT3Save.languages.keySet());
+        langs.add("");
+        Collections.sort(langs);
 
-        _combo = new JComboBox<>(langs.toArray(String[]::new));
-        _combo.setBounds(80, i * 30, 180, 20);
+        _combo = new JComboBox<String>(langs.toArray(String[]::new));
+        _combo.setBounds(80, 5 + i * 30, 300, 20);
         _combo.setEnabled(false);
+        _combo.setFont(_combo.getFont().deriveFont(Font.PLAIN));
         add(_combo);
-
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        }
-        catch(Exception e) {}
 
         setJMenuBar(menuBar);
         getContentPane().setLayout(null);
-        setSize(280, 330);
+        setSize(400, 400);
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(false);
@@ -96,40 +95,50 @@ public class Form extends JFrame {
             _save = new GT3Save(path);
             if(!_save.CheckCrc32()) JOptionPane.showMessageDialog(null, "Invalid checksum", "Error", JOptionPane.INFORMATION_MESSAGE);
 
-            int days = _save.GetDays();
-            _textFields[0].setEnabled(true);
-            _textFields[0].setText(String.valueOf(days));
+            String p = _save.GetStr(VALUE.PATH);
+            _texts[0].setEnabled(true);
+            _texts[0].setEditable(false);
+            _texts[0].setText(p);
 
-            int races = _save.GetRaces();
-            _textFields[1].setEnabled(true);
-            _textFields[1].setText(String.valueOf(races));
+            int checksum = _save.GetInt(VALUE.CRC32);
+            _texts[1].setEnabled(true);
+            _texts[1].setEditable(false);
+            _texts[1].setText(String.format("%X", checksum));
 
-            int wins = _save.GetWins();
-            _textFields[2].setEnabled(true);
-            _textFields[2].setText(String.valueOf(wins));
+            int days = _save.GetInt(VALUE.DAYS);
+            _texts[2].setEnabled(true);
+            _texts[2].setText(String.valueOf(days));
 
-            long cash = _save.GetCash();
-            _textFields[3].setEnabled(true);
-            _textFields[3].setText(String.valueOf(cash));
+            int races = _save.GetInt(VALUE.RACES);
+            _texts[3].setEnabled(true);
+            _texts[3].setText(String.valueOf(races));
 
-            long prize = _save.GetPrize();
-            _textFields[4].setEnabled(true);
-            _textFields[4].setText(String.valueOf(prize));
+            int wins = _save.GetInt(VALUE.WINS);
+            _texts[4].setEnabled(true);
+            _texts[4].setText(String.valueOf(wins));
 
-            int carCount = _save.GetCarCount();
-            _textFields[5].setEnabled(true);
-            _textFields[5].setEditable(false);
-            _textFields[5].setText(String.valueOf(carCount));
+            long money = _save.GetLong(VALUE.MONEY);
+            _texts[5].setEnabled(true);
+            _texts[5].setText(String.valueOf(money));
 
-            int trophies = _save.GetTrophies();
-            _textFields[6].setEnabled(true);
-            _textFields[6].setText(String.valueOf(trophies));
+            long prize = _save.GetLong(VALUE.PRIZE);
+            _texts[6].setEnabled(true);
+            _texts[6].setText(String.valueOf(prize));
 
-            int bonusCars = _save.GetBonusCars();
-            _textFields[7].setEnabled(true);
-            _textFields[7].setText(String.valueOf(bonusCars));
+            int carCount = _save.GetInt(VALUE.CAR_COUNT);
+            _texts[7].setEnabled(true);
+            _texts[7].setEditable(false);
+            _texts[7].setText(String.valueOf(carCount));
 
-            String lang = _save.GetLang();
+            int trophies = _save.GetInt(VALUE.TROPHIES);
+            _texts[8].setEnabled(true);
+            _texts[8].setText(String.valueOf(trophies));
+
+            int bonusCars = _save.GetInt(VALUE.BONUS_CARS);
+            _texts[9].setEnabled(true);
+            _texts[9].setText(String.valueOf(bonusCars));
+
+            String lang = _save.GetStr(VALUE.LANG);
             _combo.setEnabled(true);
             _combo.setSelectedItem(lang);
 
@@ -146,45 +155,51 @@ public class Form extends JFrame {
         try {
             if(_save == null) return;
 
-            int days = Integer.valueOf(_textFields[1].getText());
-            _save.UpdateDays(days);
+            int days = Integer.valueOf(_texts[2].getText());
+            _save.UpdateInt(VALUE.DAYS, days);
 
-            int races = Integer.valueOf(_textFields[2].getText());
-            _save.UpdateRaces(races);
+            int races = Integer.valueOf(_texts[3].getText());
+            _save.UpdateInt(VALUE.RACES, races);
 
-            int wins = Integer.valueOf(_textFields[3].getText());
-            _save.UpdateWins(wins);
+            int wins = Integer.valueOf(_texts[4].getText());
+            _save.UpdateInt(VALUE.WINS, wins);
 
-            long cash = Long.valueOf(_textFields[4].getText());
-            _save.UpdateCash(cash);
+            long money = Long.valueOf(_texts[5].getText());
+            _save.UpdateLong(VALUE.MONEY, money);
 
-            long prize = Long.valueOf(_textFields[5].getText());
-            _save.UpdatePrize(prize);
+            long prize = Long.valueOf(_texts[6].getText());
+            _save.UpdateLong(VALUE.PRIZE, prize);
 
-            int trophies = Integer.valueOf(_textFields[7].getText());
-            _save.UpdateTrophies(trophies);
+            int trophies = Integer.valueOf(_texts[8].getText());
+            _save.UpdateInt(VALUE.TROPHIES, trophies);
 
-            int bonusCars = Integer.valueOf(_textFields[8].getText());
-            _save.UpdateBonusCars(bonusCars);
+            int bonusCars = Integer.valueOf(_texts[9].getText());
+            _save.UpdateInt(VALUE.BONUS_CARS, bonusCars);
 
             String lang = (String) _combo.getSelectedItem();
-            _save.UpdateLang(lang);
+            _save.UpdateStr(VALUE.LANG, lang);
 
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
+            RefreshChecksum();
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
+    private void RefreshChecksum() {
+        int checksum = _save.GetInt(VALUE.CRC32);
+        _texts[1].setText(String.format("%X", checksum));
+    }
+
     private void ClearData() {
         _update.setEnabled(false);
         _close.setEnabled(false);
 
-        for(JTextField textField : _textFields) {
-            textField.setText(null);
-            textField.setEnabled(false);
+        for(JTextField text : _texts) {
+            text.setText(null);
+            text.setEnabled(false);
         }
 
         _combo.setEnabled(false);
@@ -195,5 +210,4 @@ public class Form extends JFrame {
         UpdateSave();
         ClearData();
     }
-
 }
