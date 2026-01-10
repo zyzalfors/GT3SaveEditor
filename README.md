@@ -14,5 +14,5 @@ For handling and converting PS2 save files in different formats, the following t
 Similar repository:
 - https://github.com/R1C3R21/GT3-Language-Switcher
 
-Reddit about languange change:
+Reddit about language change:
 - https://www.reddit.com/r/ps2/comments/a23amw/howto_edit_gran_turismo_3_save_game_language/
