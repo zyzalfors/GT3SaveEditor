@@ -158,11 +158,6 @@ public class GT3Save {
                 size = _winsSize;
                 break;
 
-            case CAR_COUNT:
-                offset = _carCountOffset;
-                size = _carCountSize;
-                break;
-
             case TROPHIES:
                 offset = _trophiesOffset;
                 size = _trophiesSize;
