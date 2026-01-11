@@ -4,8 +4,6 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
 
-import GT3SaveEditor.GT3Save.VALUE;
-
 public class GT3Save {
     private final byte[] _bytes;
     private final String _path;
