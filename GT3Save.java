@@ -4,6 +4,8 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.zip.*;
 
+import GT3SaveEditor.GT3Save.VALUE;
+
 public class GT3Save {
     private final byte[] _bytes;
     private final String _path;
@@ -42,7 +44,18 @@ public class GT3Save {
     private static final int _langSize = 1;
     public static final Map<String, Integer> languages = Map.of("ES", 0xF9, "IT", 0xFA, "DE", 0xFB, "FR", 0xFC, "EN-GB", 0xFD, "EN-US", 0xFE, "JA", 0xFF);
 
-    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANG};
+    private static final int _firstCarOffset = 368;
+    private static final int _carSize = 516;
+
+    private static final int _firstLicenseOffset = 68; //only for EU version
+    private static final int _licenseSize = 4; //only for EU version
+    private static final int _licenses = 6;
+    private static final int _testsPerLicense = 8;
+    private static final int _licenseSkip = 340; //only for EU version
+    public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF}, //only for EU version
+                                                                    "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
+
+    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE, LICENSES};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -243,20 +256,35 @@ public class GT3Save {
             case PATH:
                 return _path;
 
-            case LANG:
+            case LANGUAGE:
                 int b = _bytes[_langOffset] & 0xFF;
                 for(String lang : languages.keySet()) {
                     if(((int) languages.get(lang)) == b) return lang;
                 }
                 break;
         }
+
         return "";
     }
 
     public void UpdateStr(VALUE value, String val) {
         switch(value) {
-            case LANG:
+            case LANGUAGE:
                 if(languages.containsKey(val)) _bytes[_langOffset] = (byte) ((int) languages.get(val));
+                break;
+
+            case LICENSES:
+                if(licenseProgress.containsKey(val)) {
+                    int[] bytes = licenseProgress.get(val);
+                    int carCount = GetInt(VALUE.CAR_COUNT);
+                    int firstLicOffset = _firstCarOffset + _carSize * carCount + _firstLicenseOffset;
+
+                    for(int i = 0; i < _licenses * _testsPerLicense; i++) {
+                        int offset = firstLicOffset + _licenseSkip * i;
+
+                        for(int j = 0; j < _licenseSize; j++) _bytes[offset + j] = (byte) bytes[j];
+                    }
+                }
                 break;
         }
     }
