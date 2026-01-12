@@ -103,7 +103,7 @@ public class Form extends JFrame {
             int checksum = _save.GetInt(VALUE.CRC32);
             _texts[1].setEnabled(true);
             _texts[1].setEditable(false);
-            _texts[1].setText(String.format("%02X", checksum));
+            _texts[1].setText(String.format("%08X", checksum));
 
             int days = _save.GetInt(VALUE.DAYS);
             _texts[2].setEnabled(true);
@@ -190,7 +190,7 @@ public class Form extends JFrame {
 
     private void RefreshChecksum() {
         int checksum = _save.GetInt(VALUE.CRC32);
-        _texts[1].setText(String.format("%02X", checksum));
+        _texts[1].setText(String.format("%08X", checksum));
     }
 
     private void ClearData() {
