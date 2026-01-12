@@ -7,10 +7,9 @@ import GT3SaveEditor.GT3Save.*;
 
 public class Form extends JFrame {
     private static final String _title = "GT3 Save Editor";
-    private static final String[] _labels = new String[] {"Path:", "Checksum:", "Days:", "Races:", "Wins:", "Money:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:", "Licenses:"};
-    private JTextField[] _texts = new JTextField[_labels.length - 2];
+    private static final String[] _labels = new String[] {"Path:", "Checksum:", "Days:", "Races:", "Wins:", "Money:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
+    private JTextField[] _texts = new JTextField[_labels.length - 1];
     private JComboBox<String> _langCombo;
-    private JComboBox<String> _licCombo;
     private JMenuItem _open;
     private JMenuItem _update;
     private JMenuItem _close;
@@ -40,7 +39,6 @@ public class Form extends JFrame {
         menuBar.add(menu);
 
         int i = 0;
-
         for(i = 0; i < _texts.length; i++) {
             JLabel label = new JLabel(_labels[i]);
             label.setBounds(10, 5 + i * 30, 80, 20);
@@ -54,34 +52,23 @@ public class Form extends JFrame {
             _texts[i] = text;
         }
 
-        i = _labels.length - 2;
         JLabel langLabel = new JLabel(_labels[i]);
         langLabel.setBounds(10, 5 + i * 30, 80, 20);
         add(langLabel);
 
         ArrayList<String> langs = new ArrayList<String>(GT3Save.languages.keySet());
         langs.add("");
+        Collections.sort(langs);
+
         _langCombo = new JComboBox<String>(langs.toArray(String[]::new));
         _langCombo.setBounds(80, 5 + i * 30, 300, 20);
         _langCombo.setEnabled(false);
         _langCombo.setFont(_langCombo.getFont().deriveFont(Font.PLAIN));
         add(_langCombo);
 
-        i = _labels.length - 1;
-        JLabel licLabel = new JLabel(_labels[i]);
-        licLabel.setBounds(10, 5 + i * 30, 80, 20);
-        add(licLabel);
-
-        ArrayList<String> licProgs = new ArrayList<String>(GT3Save.licenseProgress.keySet());
-        _licCombo = new JComboBox<String>(licProgs.toArray(String[]::new));
-        _licCombo.setBounds(80, 5 + i * 30, 300, 20);
-        _licCombo.setEnabled(false);
-        _licCombo.setFont(_langCombo.getFont().deriveFont(Font.PLAIN));
-        add(_licCombo);
-
         setJMenuBar(menuBar);
         getContentPane().setLayout(null);
-        setSize(400, 420);
+        setSize(400, 400);
         setLocationRelativeTo(null);
         setVisible(true);
         setResizable(false);
@@ -116,7 +103,7 @@ public class Form extends JFrame {
             int checksum = _save.GetInt(VALUE.CRC32);
             _texts[1].setEnabled(true);
             _texts[1].setEditable(false);
-            _texts[1].setText(String.format("%X", checksum));
+            _texts[1].setText(String.format("%02X", checksum));
 
             int days = _save.GetInt(VALUE.DAYS);
             _texts[2].setEnabled(true);
@@ -155,8 +142,6 @@ public class Form extends JFrame {
             _langCombo.setEnabled(true);
             _langCombo.setSelectedItem(lang);
 
-            _licCombo.setEnabled(true);
-
             _update.setEnabled(true);
             _close.setEnabled(true);
         }
@@ -194,9 +179,6 @@ public class Form extends JFrame {
             String lang = (String) _langCombo.getSelectedItem();
             _save.UpdateStr(VALUE.LANGUAGE, lang);
 
-            String licProg = (String) _licCombo.getSelectedItem();
-            _save.UpdateStr(VALUE.LICENSES, licProg);
-
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
             RefreshChecksum();
@@ -208,7 +190,7 @@ public class Form extends JFrame {
 
     private void RefreshChecksum() {
         int checksum = _save.GetInt(VALUE.CRC32);
-        _texts[1].setText(String.format("%X", checksum));
+        _texts[1].setText(String.format("%02X", checksum));
     }
 
     private void ClearData() {

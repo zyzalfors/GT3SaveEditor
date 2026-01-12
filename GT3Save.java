@@ -53,7 +53,7 @@ public class GT3Save {
     public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF},
                                                                     "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
 
-    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE, LICENSES};
+    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -270,20 +270,6 @@ public class GT3Save {
             case LANGUAGE:
                 if(languages.containsKey(val)) _bytes[_langOffset] = (byte) ((int) languages.get(val));
                 break;
-
-            case LICENSES:
-                if(licenseProgress.containsKey(val)) {
-                    int[] bytes = licenseProgress.get(val);
-                    int carCount = GetInt(VALUE.CAR_COUNT);
-                    int firstLicOffset = _firstCarOffset + _carSize * carCount + _firstLicenseOffset;
-
-                    for(int i = 0; i < _licenses * _testsPerLicense; i++) {
-                        int offset = firstLicOffset + _licenseSkip * i;
-
-                        //for(int j = 0; j < _licenseSize; j++) _bytes[offset + j] = (byte) bytes[j];
-                    }
-                }
-                break;
         }
     }
 
@@ -291,5 +277,4 @@ public class GT3Save {
         UpdateCrc32();
         Files.write(Paths.get(_path), _bytes);
     }
-
 }
