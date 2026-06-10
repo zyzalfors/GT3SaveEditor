@@ -11,6 +11,9 @@ public class GT3Save {
     private static final int _headerOffset = 0;
     private static final int _headerSize = 64;
 
+    private static final int _endOfSaveOffset = 4;
+    private static final int _endOfSaveSize = 4;
+
     private static final int _crc32Offset = 12;
     private static final int _crc32Size = 4;
 
@@ -53,7 +56,7 @@ public class GT3Save {
     public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF},
                                                                     "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
 
-    public static enum VALUE {PATH, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {PATH, ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -61,19 +64,12 @@ public class GT3Save {
     }
 
     private int CalcCrc32() {
-        int padding = 0;
-
-        for(int i = _bytes.length - 1; i >= 0; i--) {
-            if((_bytes[i] & 0xFF) != 0xFF) padding++;
-            else break;
-        }
-
-        int toOffset = _bytes.length - padding;
-        if(toOffset < _headerSize) toOffset = _headerSize;
-        byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset);
+        int toOffset = GetInt(VALUE.ENDOFSAVE) + 63;
+        byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset + 1);
 
         CRC32 crc32 = new CRC32();
         crc32.update(bytes);
+
         return (int) crc32.getValue();
     }
 
@@ -94,6 +90,12 @@ public class GT3Save {
         boolean conv = true;
 
         switch(value) {
+            case ENDOFSAVE:
+                offset = _endOfSaveOffset;
+                size = _endOfSaveSize;
+                conv = false;
+                break;
+
             case CRC32:
                 offset = _crc32Offset;
                 size = _crc32Size;
@@ -190,7 +192,8 @@ public class GT3Save {
         buffer.putInt(val);
         byte[] bytes = buffer.array();
 
-        for(int i = 0; i < size; i++) _bytes[offset + i] = bytes[i];
+        for(int i = 0; i < size; i++)
+            _bytes[offset + i] = bytes[i];
     }
 
     public long GetLong(VALUE value) {
@@ -246,7 +249,8 @@ public class GT3Save {
         buffer.putLong(val);
         byte[] bytes = buffer.array();
 
-        for(int i = 0; i < size; i++) _bytes[offset + i] = bytes[i];
+        for(int i = 0; i < size; i++)
+            _bytes[offset + i] = bytes[i];
     }
 
     public String GetStr(VALUE value) {

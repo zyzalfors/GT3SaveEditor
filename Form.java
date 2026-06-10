@@ -60,7 +60,7 @@ public class Form extends JFrame {
         langs.add("");
         Collections.sort(langs);
 
-        _langCombo = new JComboBox<String>(langs.toArray(String[]::new));
+        _langCombo = new JComboBox<String>(langs.toArray(new String[0]));
         _langCombo.setBounds(80, 5 + i * 30, 300, 20);
         _langCombo.setEnabled(false);
         _langCombo.setFont(_langCombo.getFont().deriveFont(Font.PLAIN));
