@@ -64,7 +64,7 @@ public class GT3Save {
     }
 
     private int CalcCrc32() {
-        int toOffset = GetInt(VALUE.ENDOFSAVE) + 63;
+        int toOffset = _headerSize - 1 + GetInt(VALUE.ENDOFSAVE);
         byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset + 1);
 
         CRC32 crc32 = new CRC32();
