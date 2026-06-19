@@ -313,7 +313,7 @@ public class GT3Save {
 
         for(int i = 0; i < car.length(); i += 2) {
             int high = Character.digit(car.charAt(i), 16);
-            int low  = Character.digit(car.charAt(i + 1), 16);
+            int low = Character.digit(car.charAt(i + 1), 16);
             carBytes[i / 2] = (byte) ((high << 4) | low);
         }
 
