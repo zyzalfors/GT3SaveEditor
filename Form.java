@@ -3,6 +3,8 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
 import GT3SaveEditor.GT3Save.*;
 
 public class Form extends JFrame {
@@ -10,6 +12,7 @@ public class Form extends JFrame {
     private static final String[] _labels = new String[] {"Path:", "Checksum:", "Days:", "Races:", "Wins:", "Money:", "Prize:", "Car count:", "Trophies:", "Bonus cars:", "Language:"};
     private JTextField[] _texts = new JTextField[_labels.length - 1];
     private JComboBox<String> _langCombo;
+    private JTable _carsTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
     private JMenuItem _open;
     private JMenuItem _update;
     private JMenuItem _close;
@@ -38,23 +41,28 @@ public class Form extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         menuBar.add(menu);
 
+        JTabbedPane pane = new JTabbedPane();
+
+        JPanel genPanel = new JPanel();
+        genPanel.setLayout(null);
+
         int i = 0;
         for(i = 0; i < _texts.length; i++) {
             JLabel label = new JLabel(_labels[i]);
             label.setBounds(10, 5 + i * 30, 80, 20);
-            add(label);
+            genPanel.add(label);
 
             JTextField text = new JTextField();
             text.setBounds(80, 5 + i * 30, 300, 20);
             text.setEnabled(false);
-            add(text);
+            genPanel.add(text);
 
             _texts[i] = text;
         }
 
         JLabel langLabel = new JLabel(_labels[i]);
         langLabel.setBounds(10, 5 + i * 30, 80, 20);
-        add(langLabel);
+        genPanel.add(langLabel);
 
         ArrayList<String> langs = new ArrayList<String>(GT3Save.languages.keySet());
         langs.add("");
@@ -64,14 +72,19 @@ public class Form extends JFrame {
         _langCombo.setBounds(80, 5 + i * 30, 300, 20);
         _langCombo.setEnabled(false);
         _langCombo.setFont(_langCombo.getFont().deriveFont(Font.PLAIN));
-        add(_langCombo);
+        genPanel.add(_langCombo);
 
+        JPanel carsPanel = new JPanel(new BorderLayout());
+        carsPanel.add(new JScrollPane(_carsTable));
+
+        pane.addTab("General", genPanel);
+        pane.addTab("Cars", carsPanel);
+
+        add(pane);
         setJMenuBar(menuBar);
-        getContentPane().setLayout(null);
-        setSize(400, 400);
+        setSize(900, 500);
         setLocationRelativeTo(null);
         setVisible(true);
-        setResizable(false);
         AddEventHandlers();
     }
 
@@ -84,8 +97,8 @@ public class Form extends JFrame {
 
     private void OpenSave() {
         JFileChooser chooser = new JFileChooser();
-        int sel = chooser.showOpenDialog(null);
-        if(sel == JFileChooser.APPROVE_OPTION) PrintData(chooser.getSelectedFile().getAbsolutePath());
+        if(chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
+            PrintData(chooser.getSelectedFile().getAbsolutePath());
     }
 
     private void PrintData(String path) {
@@ -93,12 +106,12 @@ public class Form extends JFrame {
             if(path == null) return;
 
             _save = new GT3Save(path);
-            if(!_save.CheckCrc32()) JOptionPane.showMessageDialog(null, "Invalid checksum", "Error", JOptionPane.INFORMATION_MESSAGE);
+            if(!_save.CheckCrc32())
+                JOptionPane.showMessageDialog(null, "Invalid checksum", "Error", JOptionPane.INFORMATION_MESSAGE);
 
-            String p = _save.GetStr(VALUE.PATH);
             _texts[0].setEnabled(true);
             _texts[0].setEditable(false);
-            _texts[0].setText(p);
+            _texts[0].setText(path);
 
             int checksum = _save.GetInt(VALUE.CRC32);
             _texts[1].setEnabled(true);
@@ -142,6 +155,11 @@ public class Form extends JFrame {
             _langCombo.setEnabled(true);
             _langCombo.setSelectedItem(lang);
 
+            DefaultTableModel model = (DefaultTableModel) _carsTable.getModel();
+            model.setRowCount(0);
+            for(Object[] car : _save.GetCars())
+                model.addRow(car);
+
             _update.setEnabled(true);
             _close.setEnabled(true);
         }
@@ -179,6 +197,15 @@ public class Form extends JFrame {
             String lang = (String) _langCombo.getSelectedItem();
             _save.UpdateStr(VALUE.LANGUAGE, lang);
 
+            DefaultTableModel model = (DefaultTableModel) _carsTable.getModel();
+            StringBuilder car = new StringBuilder();
+
+            for(int i = 0; i < model.getRowCount(); i++) {
+                car.append(model.getValueAt(i, 0));
+                car.append(model.getValueAt(i, 1));
+                _save.UpdateCar(i, car.toString());
+            }
+
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
             RefreshChecksum();
@@ -203,6 +230,8 @@ public class Form extends JFrame {
         }
 
         _langCombo.setEnabled(false);
+        ((DefaultTableModel) _carsTable.getModel()).setRowCount(0);
+
         _save = null;
     }
 

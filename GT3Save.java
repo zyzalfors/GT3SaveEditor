@@ -47,16 +47,16 @@ public class GT3Save {
 
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
+    private static final int _carCodeSize = 8;
 
     private static final int _firstLicenseOffset = 68;
     private static final int _licenseSize = 4;
     private static final int _licenses = 6;
     private static final int _testsPerLicense = 8;
     private static final int _licenseSkip = 340;
-    public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF},
-                                                                    "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
+    public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF}, "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
 
-    public static enum VALUE {PATH, ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -191,9 +191,7 @@ public class GT3Save {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(val);
         byte[] bytes = buffer.array();
-
-        for(int i = 0; i < size; i++)
-            _bytes[offset + i] = bytes[i];
+        System.arraycopy(bytes, 0, _bytes, offset, size);
     }
 
     public long GetLong(VALUE value) {
@@ -248,21 +246,19 @@ public class GT3Save {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(val);
         byte[] bytes = buffer.array();
-
-        for(int i = 0; i < size; i++)
-            _bytes[offset + i] = bytes[i];
+        System.arraycopy(bytes, 0, _bytes, offset, size);
     }
 
     public String GetStr(VALUE value) {
         switch(value) {
-            case PATH:
-                return _path;
-
             case LANGUAGE:
                 int b = _bytes[_langOffset] & 0xFF;
                 for(String lang : languages.keySet()) {
                     if(((int) languages.get(lang)) == b) return lang;
                 }
+                break;
+
+            default:
                 break;
         }
 
@@ -272,10 +268,58 @@ public class GT3Save {
     public void UpdateStr(VALUE value, String val) {
         switch(value) {
             case LANGUAGE:
-                if(languages.containsKey(val)) _bytes[_langOffset] = (byte) ((int) languages.get(val));
+                if(languages.containsKey(val))
+                    _bytes[_langOffset] = (byte) ((int) languages.get(val));
+                break;
+
+            default:
                 break;
         }
     }
+
+    public String[][] GetCars() {
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        String[][] cars = new String[carCount][2];
+
+        byte[] carBytes = new byte[_carSize];
+        StringBuilder carCode = new StringBuilder();
+        StringBuilder carData = new StringBuilder();
+
+        for(int i = 0; i < carCount; i++) {
+            int carOffset = _firstCarOffset + _carSize * i;
+            System.arraycopy(_bytes, carOffset, carBytes, 0, _carSize);
+
+            for(int j = 0; j < _carCodeSize; j++)
+                carCode.append(String.format("%02X", carBytes[j]));
+
+            cars[i][0] = carCode.toString();
+            carCode.setLength(0);
+
+            for(int j = _carCodeSize; j < _carSize; j++)
+                carData.append(String.format("%02X", carBytes[j]));
+
+            cars[i][1] = carData.toString();
+            carData.setLength(0);
+        }
+
+        return cars;
+    }
+
+    public void UpdateCar(int pos, String car) {
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        if(pos < 0 || pos > carCount - 1 || car.length() != _carSize * 2) return;
+
+        byte[] carBytes = new byte[_carSize];
+
+        for(int i = 0; i < car.length(); i += 2) {
+            int high = Character.digit(car.charAt(i), 16);
+            int low  = Character.digit(car.charAt(i + 1), 16);
+            carBytes[i / 2] = (byte) ((high << 4) | low);
+        }
+
+        int carOffset = _firstCarOffset + _carSize * pos;
+        System.arraycopy(carBytes, 0, _bytes, carOffset, _carSize);
+   }
 
     public void Update() throws Exception {
         UpdateCrc32();
