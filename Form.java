@@ -12,6 +12,8 @@ public class Form extends JFrame {
     private JTextField[] _texts = new JTextField[_labels.length - 1];
     private JComboBox<String> _langCombo;
     private JTable _carsTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
+    private ArrayList<JComboBox<String>> _licCombos = new ArrayList<JComboBox<String>>();
+    private JButton _allGoldLic;
     private JMenuItem _open;
     private JMenuItem _update;
     private JMenuItem _close;
@@ -76,8 +78,36 @@ public class Form extends JFrame {
         JPanel carsPanel = new JPanel(new BorderLayout());
         carsPanel.add(new JScrollPane(_carsTable));
 
+        JPanel licPanel = new JPanel();
+        licPanel.setLayout(null);
+
+        ArrayList<String> licProg = new ArrayList<String>(GT3Save.licenseProgress.keySet());
+        licProg.add("");
+        Collections.sort(licProg);
+
+        for(i = 0; i < GT3Save.licenses.length; i++) {
+            JLabel label = new JLabel(GT3Save.licenses[i]);
+            label.setBounds(10, 5 + i * 30, 80, 20);
+            licPanel.add(label);
+
+            for(int j = 0; j < GT3Save.testsPerLicense; j++) {
+                JComboBox<String> licCombo = new JComboBox<String>(licProg.toArray(new String[0]));
+                licCombo.setBounds(30 + j * 80, 5 + i * 30, 70, 20);
+                licCombo.setEnabled(false);
+                licPanel.add(licCombo);
+
+                _licCombos.add(licCombo);
+            }
+        }
+
+        _allGoldLic = new JButton("All gold");
+        _allGoldLic.setBounds(10, 5 + i * 30, 80, 20);
+        _allGoldLic.setEnabled(false);
+        licPanel.add(_allGoldLic);
+
         pane.addTab("General", genPanel);
         pane.addTab("Cars", carsPanel);
+        pane.addTab("Licenses", licPanel);
 
         add(pane);
         setJMenuBar(menuBar);
@@ -92,6 +122,7 @@ public class Form extends JFrame {
         _open.addActionListener((ActionEvent e) -> OpenSave());
         _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
+        _allGoldLic.addActionListener((ActionEvent e) -> AllGoldLic());
     }
 
     private void OpenSave() {
@@ -159,6 +190,13 @@ public class Form extends JFrame {
             for(Object[] car : _save.GetCars())
                 model.addRow(car);
 
+            String[] lic = _save.GetLic();
+            for(int i = 0; i < lic.length; i++) {
+                _licCombos.get(i).setEnabled(true);
+                _licCombos.get(i).setSelectedItem(lic[i]);
+            }
+            _allGoldLic.setEnabled(true);
+
             _update.setEnabled(true);
             _close.setEnabled(true);
         }
@@ -198,12 +236,16 @@ public class Form extends JFrame {
 
             DefaultTableModel model = (DefaultTableModel) _carsTable.getModel();
             StringBuilder car = new StringBuilder();
-
             for(int i = 0; i < model.getRowCount(); i++) {
                 car.append(model.getValueAt(i, 0));
                 car.append(model.getValueAt(i, 1));
                 _save.UpdateCar(i, car.toString());
             }
+
+            String[] lic = new String[_licCombos.size()];
+            for(int i = 0; i < lic.length; i++)
+                lic[i] = (String) _licCombos.get(i).getSelectedItem();
+            _save.UpdateLic(lic);
 
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -219,6 +261,11 @@ public class Form extends JFrame {
         _texts[1].setText(String.format("%08X", checksum));
     }
 
+    private void AllGoldLic() {
+        for(JComboBox<String> combo : _licCombos)
+            combo.setSelectedItem("Gold");
+    }
+
     private void ClearData() {
         _update.setEnabled(false);
         _close.setEnabled(false);
@@ -228,8 +275,15 @@ public class Form extends JFrame {
             text.setEnabled(false);
         }
 
+        _langCombo.setSelectedItem("");
         _langCombo.setEnabled(false);
         ((DefaultTableModel) _carsTable.getModel()).setRowCount(0);
+
+        for(JComboBox<String> combo : _licCombos) {
+            combo.setSelectedItem("");
+            combo.setEnabled(false);
+        }
+        _allGoldLic.setEnabled(false);
 
         _save = null;
     }

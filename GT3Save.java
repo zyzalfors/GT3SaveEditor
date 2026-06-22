@@ -35,6 +35,9 @@ public class GT3Save {
     private static final int _carCountOffset = 112;
     private static final int _carCountSize = 4;
 
+    private static final int _carsSkipsOffset = 116;
+    private static final int _carsSkipsSize = 4;
+
     private static final int _trophiesOffset = 240;
     private static final int _trophiesSize = 4;
 
@@ -48,15 +51,18 @@ public class GT3Save {
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
     private static final int _carCodeSize = 8;
+    private static final int _carsSkipSize = 68;
 
-    private static final int _firstLicenseOffset = 68;
     private static final int _licenseSize = 4;
-    private static final int _licenses = 6;
-    private static final int _testsPerLicense = 8;
     private static final int _licenseSkip = 340;
-    public static final Map<String, int[]> licenseProgress = Map.of("None", new int[] {0x00, 0x00, 0x00, 0x00}, "Bronze", new int[] {0xFD, 0xFF, 0xFF, 0xFF}, "Silver", new int[] {0xFE, 0xFF, 0xFF, 0xFF}, "Gold", new int[] {0xFF, 0xFF, 0xFF, 0xFF});
+    public static final int testsPerLicense = 8;
+    public static final String[] licenses = new String[] {"B", "A", "IB", "IA", "S", "R"};
+    public static final Map<String, byte[]> licenseProgress = Map.of("None", new byte[] {0x00, 0x00, 0x00, 0x00},
+                                                                     "Bronze", new byte[] {(byte) 0xFD, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
+                                                                     "Silver", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
+                                                                     "Gold", new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
 
-    public static enum VALUE {ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARSSKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -120,6 +126,11 @@ public class GT3Save {
             case CAR_COUNT:
                 offset = _carCountOffset;
                 size = _carCountSize;
+                break;
+
+            case CARSSKIPS:
+                offset = _carsSkipsOffset;
+                size = _carsSkipsSize;
                 break;
 
             case TROPHIES:
@@ -279,24 +290,25 @@ public class GT3Save {
 
     public String[][] GetCars() {
         int carCount = GetInt(VALUE.CAR_COUNT);
-        String[][] cars = new String[carCount][2];
 
-        byte[] carBytes = new byte[_carSize];
+        String[][] cars = new String[carCount][2];
+        byte[] bytes = new byte[_carSize];
+
         StringBuilder carCode = new StringBuilder();
         StringBuilder carData = new StringBuilder();
 
         for(int i = 0; i < carCount; i++) {
-            int carOffset = _firstCarOffset + _carSize * i;
-            System.arraycopy(_bytes, carOffset, carBytes, 0, _carSize);
+            int offset = _firstCarOffset + _carSize * i;
+            System.arraycopy(_bytes, offset, bytes, 0, _carSize);
 
             for(int j = 0; j < _carCodeSize; j++)
-                carCode.append(String.format("%02X", carBytes[j]));
+                carCode.append(String.format("%02X", bytes[j]));
 
             cars[i][0] = carCode.toString();
             carCode.setLength(0);
 
             for(int j = _carCodeSize; j < _carSize; j++)
-                carData.append(String.format("%02X", carBytes[j]));
+                carData.append(String.format("%02X", bytes[j]));
 
             cars[i][1] = carData.toString();
             carData.setLength(0);
@@ -309,17 +321,48 @@ public class GT3Save {
         int carCount = GetInt(VALUE.CAR_COUNT);
         if(pos < 0 || pos > carCount - 1 || car.length() != _carSize * 2) return;
 
-        byte[] carBytes = new byte[_carSize];
+        byte[] bytes = new byte[_carSize];
 
         for(int i = 0; i < car.length(); i += 2) {
             int high = Character.digit(car.charAt(i), 16);
             int low = Character.digit(car.charAt(i + 1), 16);
-            carBytes[i / 2] = (byte) ((high << 4) | low);
+            bytes[i / 2] = (byte) ((high << 4) | low);
         }
 
-        int carOffset = _firstCarOffset + _carSize * pos;
-        System.arraycopy(carBytes, 0, _bytes, carOffset, _carSize);
+        int offset = _firstCarOffset + _carSize * pos;
+        System.arraycopy(bytes, 0, _bytes, offset, _carSize);
    }
+
+    public String[] GetLic() {
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        int firstLicOffset = _firstCarOffset + _carSize * carCount + GetInt(VALUE.CARSSKIPS) * _carsSkipSize;
+
+        String[] lic = new String[licenses.length * testsPerLicense];
+        byte[] bytes = new byte[_licenseSize];
+
+        for(int i = 0; i < lic.length; i++) {
+            int offset = firstLicOffset + _licenseSkip * i;
+            System.arraycopy(_bytes, offset, bytes, 0, _licenseSize);
+
+            lic[i] = "";
+            for(String prog : licenseProgress.keySet()) {
+                if(Arrays.equals(licenseProgress.get(prog), bytes)) lic[i] = prog;
+            }
+        }
+
+        return lic;
+    }
+
+    public void UpdateLic(String[] lic) {
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        int firstLicOffset = _firstCarOffset + _carSize * carCount + GetInt(VALUE.CARSSKIPS) * _carsSkipSize;
+
+        for(int i = 0; i < lic.length; i++) {
+            byte[] bytes = licenseProgress.get(lic[i]);
+            int offset = firstLicOffset + _licenseSkip * i;
+            System.arraycopy(bytes, 0, _bytes, offset, _licenseSize);
+        }
+    }
 
     public void Update() throws Exception {
         UpdateCrc32();
