@@ -62,7 +62,11 @@ public class GT3Save {
                                                                      "Silver", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
                                                                      "Gold", new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
 
-    public static enum VALUE {ENDOFSAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARSSKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static final int eventCount = 364;
+    public static final int _eventSkip = 4;
+    public static final Map<String, Integer> eventProgress = Map.of("None", 0xF7, "Bronze", 0xFD, "Silver", 0xFE, "Gold", 0xFF);
+
+    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -70,7 +74,7 @@ public class GT3Save {
     }
 
     private int CalcCrc32() {
-        int toOffset = _headerSize - 1 + GetInt(VALUE.ENDOFSAVE);
+        int toOffset = _headerSize - 1 + GetInt(VALUE.END_OF_SAVE);
         byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset + 1);
 
         CRC32 crc32 = new CRC32();
@@ -96,7 +100,7 @@ public class GT3Save {
         boolean conv = true;
 
         switch(value) {
-            case ENDOFSAVE:
+            case END_OF_SAVE:
                 offset = _endOfSaveOffset;
                 size = _endOfSaveSize;
                 conv = false;
@@ -128,7 +132,7 @@ public class GT3Save {
                 size = _carCountSize;
                 break;
 
-            case CARSSKIPS:
+            case CARS_SKIPS:
                 offset = _carsSkipsOffset;
                 size = _carsSkipsSize;
                 break;
@@ -333,9 +337,8 @@ public class GT3Save {
         System.arraycopy(bytes, 0, _bytes, offset, _carSize);
    }
 
-    public String[] GetLic() {
-        int carCount = GetInt(VALUE.CAR_COUNT);
-        int firstLicOffset = _firstCarOffset + _carSize * carCount + GetInt(VALUE.CARSSKIPS) * _carsSkipSize;
+    public String[] GetLicenses() {
+        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize;
 
         String[] lic = new String[licenses.length * testsPerLicense];
         byte[] bytes = new byte[_licenseSize];
@@ -353,14 +356,39 @@ public class GT3Save {
         return lic;
     }
 
-    public void UpdateLic(String[] lic) {
-        int carCount = GetInt(VALUE.CAR_COUNT);
-        int firstLicOffset = _firstCarOffset + _carSize * carCount + GetInt(VALUE.CARSSKIPS) * _carsSkipSize;
+    public void UpdateLicenses(String[] lic) {
+        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize;
 
         for(int i = 0; i < lic.length; i++) {
             byte[] bytes = licenseProgress.get(lic[i]);
             int offset = firstLicOffset + _licenseSkip * i;
             System.arraycopy(bytes, 0, _bytes, offset, _licenseSize);
+        }
+    }
+
+    public String[] GetEvents() {
+        int firstEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize + _licenseSkip * licenses.length * testsPerLicense;
+        String[] ev = new String[eventCount];
+
+        for(int i = 0; i < ev.length; i++) {
+            int offset = firstEventOffset + _eventSkip * i;
+            int b = _bytes[offset] & 0xFF;
+
+            ev[i] = "";
+            for(String prog : eventProgress.keySet()) {
+                if(((int) eventProgress.get(prog)) == b) ev[i] = prog;
+            }
+        }
+
+        return ev;
+    }
+
+    public void UpdateEvents(String[] ev) {
+        int firstEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize + _licenseSkip * licenses.length * testsPerLicense;
+
+        for(int i = 0; i < ev.length; i++) {
+            int offset = firstEventOffset + _eventSkip * i;
+            _bytes[offset] = (byte) ((int) eventProgress.get(ev[i]));
         }
     }
 

@@ -13,7 +13,9 @@ public class Form extends JFrame {
     private JComboBox<String> _langCombo;
     private JTable _carsTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
     private ArrayList<JComboBox<String>> _licCombos = new ArrayList<JComboBox<String>>();
+    private ArrayList<JComboBox<String>> _evCombos = new ArrayList<JComboBox<String>>();
     private JButton _allGoldLic;
+    private JButton _allGoldEv;
     private JMenuItem _open;
     private JMenuItem _update;
     private JMenuItem _close;
@@ -43,9 +45,7 @@ public class Form extends JFrame {
         menuBar.add(menu);
 
         JTabbedPane pane = new JTabbedPane();
-
-        JPanel genPanel = new JPanel();
-        genPanel.setLayout(null);
+        JPanel genPanel = new JPanel(null);
 
         int i = 0;
         for(i = 0; i < _texts.length; i++) {
@@ -61,13 +61,13 @@ public class Form extends JFrame {
             _texts[i] = text;
         }
 
-        JLabel langLabel = new JLabel(_labels[i]);
-        langLabel.setBounds(10, 5 + i * 30, 80, 20);
-        genPanel.add(langLabel);
-
         ArrayList<String> langs = new ArrayList<String>(GT3Save.languages.keySet());
         langs.add("");
         Collections.sort(langs);
+
+        JLabel langLabel = new JLabel(_labels[i]);
+        langLabel.setBounds(10, 5 + i * 30, 80, 20);
+        genPanel.add(langLabel);
 
         _langCombo = new JComboBox<String>(langs.toArray(new String[0]));
         _langCombo.setBounds(80, 5 + i * 30, 300, 20);
@@ -78,8 +78,7 @@ public class Form extends JFrame {
         JPanel carsPanel = new JPanel(new BorderLayout());
         carsPanel.add(new JScrollPane(_carsTable));
 
-        JPanel licPanel = new JPanel();
-        licPanel.setLayout(null);
+        JPanel licPanel = new JPanel(null);
 
         ArrayList<String> licProg = new ArrayList<String>(GT3Save.licenseProgress.keySet());
         licProg.add("");
@@ -105,9 +104,32 @@ public class Form extends JFrame {
         _allGoldLic.setEnabled(false);
         licPanel.add(_allGoldLic);
 
+        JPanel evPanel = new JPanel(null);
+
+        ArrayList<String> evProg = new ArrayList<String>(GT3Save.eventProgress.keySet());
+        evProg.add("");
+        Collections.sort(evProg);
+
+        for(i = 0; i < GT3Save.eventCount / 14; i++) {
+            for(int j = 0; j < GT3Save.eventCount / 26; j++) {
+                JComboBox<String> evCombo = new JComboBox<String>(evProg.toArray(new String[0]));
+                evCombo.setBounds(10 + j * 80, 5 + i * 30, 70, 20);
+                evCombo.setEnabled(false);
+                evPanel.add(evCombo);
+
+                _evCombos.add(evCombo);
+            }
+        }
+
+        _allGoldEv = new JButton("All gold");
+        _allGoldEv.setBounds(10, 5 + i * 30, 80, 20);
+        _allGoldEv.setEnabled(false);
+        evPanel.add(_allGoldEv);
+
         pane.addTab("General", genPanel);
         pane.addTab("Cars", carsPanel);
         pane.addTab("Licenses", licPanel);
+        pane.addTab("Events", evPanel);
 
         add(pane);
         setJMenuBar(menuBar);
@@ -123,6 +145,7 @@ public class Form extends JFrame {
         _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
         _allGoldLic.addActionListener((ActionEvent e) -> AllGoldLic());
+        _allGoldEv.addActionListener((ActionEvent e) -> AllGoldEv());
     }
 
     private void OpenSave() {
@@ -190,12 +213,19 @@ public class Form extends JFrame {
             for(Object[] car : _save.GetCars())
                 model.addRow(car);
 
-            String[] lic = _save.GetLic();
+            String[] lic = _save.GetLicenses();
             for(int i = 0; i < lic.length; i++) {
                 _licCombos.get(i).setEnabled(true);
                 _licCombos.get(i).setSelectedItem(lic[i]);
             }
             _allGoldLic.setEnabled(true);
+
+            String[] ev = _save.GetEvents();
+            for(int i = 0; i < ev.length; i++) {
+                _evCombos.get(i).setEnabled(true);
+                _evCombos.get(i).setSelectedItem(ev[i]);
+            }
+            _allGoldEv.setEnabled(true);
 
             _update.setEnabled(true);
             _close.setEnabled(true);
@@ -245,7 +275,12 @@ public class Form extends JFrame {
             String[] lic = new String[_licCombos.size()];
             for(int i = 0; i < lic.length; i++)
                 lic[i] = (String) _licCombos.get(i).getSelectedItem();
-            _save.UpdateLic(lic);
+            _save.UpdateLicenses(lic);
+
+            String[] ev = new String[_evCombos.size()];
+            for(int i = 0; i < ev.length; i++)
+                ev[i] = (String) _evCombos.get(i).getSelectedItem();
+            _save.UpdateEvents(ev);
 
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -263,6 +298,11 @@ public class Form extends JFrame {
 
     private void AllGoldLic() {
         for(JComboBox<String> combo : _licCombos)
+            combo.setSelectedItem("Gold");
+    }
+
+    private void AllGoldEv() {
+        for(JComboBox<String> combo : _evCombos)
             combo.setSelectedItem("Gold");
     }
 
@@ -284,6 +324,12 @@ public class Form extends JFrame {
             combo.setEnabled(false);
         }
         _allGoldLic.setEnabled(false);
+
+        for(JComboBox<String> combo : _evCombos) {
+            combo.setSelectedItem("");
+            combo.setEnabled(false);
+        }
+        _allGoldEv.setEnabled(false);
 
         _save = null;
     }
