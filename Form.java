@@ -13,9 +13,11 @@ public class Form extends JFrame {
     private JComboBox<String> _langCombo;
     private JTable _carsTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
     private ArrayList<JComboBox<String>> _licCombos = new ArrayList<JComboBox<String>>();
-    private ArrayList<JComboBox<String>> _evCombos = new ArrayList<JComboBox<String>>();
+    private ArrayList<JComboBox<String>> _carEvCombos = new ArrayList<JComboBox<String>>();
+    private ArrayList<JComboBox<String>> _arcEvCombos = new ArrayList<JComboBox<String>>();
     private JButton _allGoldLic;
-    private JButton _allGoldEv;
+    private JButton _allGoldCarEv;
+    private JButton _allHardArcEv;
     private JMenuItem _open;
     private JMenuItem _update;
     private JMenuItem _close;
@@ -28,6 +30,11 @@ public class Form extends JFrame {
     }
 
     private void BuildUI() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }
+        catch(Exception e) {}
+
         _open = new JMenuItem("Open");
 
         _update = new JMenuItem("Update");
@@ -57,12 +64,10 @@ public class Form extends JFrame {
             text.setBounds(80, 5 + i * 30, 300, 20);
             text.setEnabled(false);
             genPanel.add(text);
-
             _texts[i] = text;
         }
 
         ArrayList<String> langs = new ArrayList<String>(GT3Save.languages.keySet());
-        langs.add("");
         Collections.sort(langs);
 
         JLabel langLabel = new JLabel(_labels[i]);
@@ -81,7 +86,6 @@ public class Form extends JFrame {
         JPanel licPanel = new JPanel(null);
 
         ArrayList<String> licProg = new ArrayList<String>(GT3Save.licenseProgress.keySet());
-        licProg.add("");
         Collections.sort(licProg);
 
         for(i = 0; i < GT3Save.licenses.length; i++) {
@@ -90,12 +94,11 @@ public class Form extends JFrame {
             licPanel.add(label);
 
             for(int j = 0; j < GT3Save.testsPerLicense; j++) {
-                JComboBox<String> licCombo = new JComboBox<String>(licProg.toArray(new String[0]));
-                licCombo.setBounds(30 + j * 80, 5 + i * 30, 70, 20);
-                licCombo.setEnabled(false);
-                licPanel.add(licCombo);
-
-                _licCombos.add(licCombo);
+                JComboBox<String> combo = new JComboBox<String>(licProg.toArray(new String[0]));
+                combo.setBounds(30 + j * 80, 5 + i * 30, 70, 20);
+                combo.setEnabled(false);
+                licPanel.add(combo);
+                _licCombos.add(combo);
             }
         }
 
@@ -104,32 +107,62 @@ public class Form extends JFrame {
         _allGoldLic.setEnabled(false);
         licPanel.add(_allGoldLic);
 
-        JPanel evPanel = new JPanel(null);
+        JPanel carEvPanel = new JPanel(null);
 
-        ArrayList<String> evProg = new ArrayList<String>(GT3Save.eventProgress.keySet());
-        evProg.add("");
-        Collections.sort(evProg);
+        ArrayList<String> carEvProg = new ArrayList<String>(GT3Save.careerProgress.keySet());
+        Collections.sort(carEvProg);
 
-        for(i = 0; i < GT3Save.eventCount / 14; i++) {
-            for(int j = 0; j < GT3Save.eventCount / 26; j++) {
-                JComboBox<String> evCombo = new JComboBox<String>(evProg.toArray(new String[0]));
-                evCombo.setBounds(10 + j * 80, 5 + i * 30, 70, 20);
-                evCombo.setEnabled(false);
-                evPanel.add(evCombo);
-
-                _evCombos.add(evCombo);
+        for(i = 0; i < GT3Save.careerEventCount / 14; i++) {
+            for(int j = 0; j < GT3Save.careerEventCount / 26; j++) {
+                JComboBox<String> combo = new JComboBox<String>(carEvProg.toArray(new String[0]));
+                combo.setBounds(10 + j * 80, 5 + i * 30, 70, 20);
+                combo.setEnabled(false);
+                carEvPanel.add(combo);
+                _carEvCombos.add(combo);
             }
         }
 
-        _allGoldEv = new JButton("All gold");
-        _allGoldEv.setBounds(10, 5 + i * 30, 80, 20);
-        _allGoldEv.setEnabled(false);
-        evPanel.add(_allGoldEv);
+        _allGoldCarEv = new JButton("All gold");
+        _allGoldCarEv.setBounds(10, 5 + i * 30, 80, 20);
+        _allGoldCarEv.setEnabled(false);
+        carEvPanel.add(_allGoldCarEv);
+
+        JPanel arcEvPanel = new JPanel(null);
+
+        for(i = 0; i < GT3Save.arcadeTracks.length / 2; i++) {
+            for(int j = 0; j < GT3Save.arcadeTracks.length / 17; j++) {
+                JLabel label = new JLabel(GT3Save.arcadeTracks[i * GT3Save.arcadeTracks.length / 17 + j] + ":");
+                label.setBounds(10 + j * 300, 5 + i * 30, 165, 20);
+                arcEvPanel.add(label);
+
+                JComboBox<String> combo = new JComboBox<String>(GT3Save.arcadeProgress);
+                combo.setBounds(160 + j * 325, 5 + i * 30, 70, 20);
+                combo.setEnabled(false);
+                arcEvPanel.add(combo);
+                _arcEvCombos.add(combo);
+            }
+        }
+
+        _allHardArcEv = new JButton("All hard");
+        _allHardArcEv.setBounds(10, 5 + i * 30, 80, 20);
+        _allHardArcEv.setEnabled(false);
+        arcEvPanel.add(_allHardArcEv);
+
+        JLabel areaLabel = new JLabel("Area:");
+        areaLabel.setBounds(10, 5 + (++i) * 30, 70, 20);
+        arcEvPanel.add(areaLabel);
+
+        JComboBox<String> areaCombo = new JComboBox<String>(GT3Save.arcadeAreas);
+        areaCombo.setBounds(160, 5 + i * 30, 70, 20);
+        areaCombo.setEnabled(false);
+        arcEvPanel.add(areaCombo);
+        _arcEvCombos.add(areaCombo);
 
         pane.addTab("General", genPanel);
         pane.addTab("Cars", carsPanel);
         pane.addTab("Licenses", licPanel);
-        pane.addTab("Events", evPanel);
+        pane.addTab("Career events", carEvPanel);
+        pane.addTab("Arcade events", arcEvPanel);
 
         add(pane);
         setJMenuBar(menuBar);
@@ -145,7 +178,8 @@ public class Form extends JFrame {
         _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
         _allGoldLic.addActionListener((ActionEvent e) -> AllGoldLic());
-        _allGoldEv.addActionListener((ActionEvent e) -> AllGoldEv());
+        _allGoldCarEv.addActionListener((ActionEvent e) -> AllGoldCarEv());
+        _allHardArcEv.addActionListener((ActionEvent e) -> AllHardArcEv());
     }
 
     private void OpenSave() {
@@ -213,19 +247,26 @@ public class Form extends JFrame {
             for(Object[] car : _save.GetCars())
                 model.addRow(car);
 
-            String[] lic = _save.GetLicenses();
-            for(int i = 0; i < lic.length; i++) {
+            String[] licProg = _save.GetLicenses();
+            for(int i = 0; i < licProg.length; i++) {
                 _licCombos.get(i).setEnabled(true);
-                _licCombos.get(i).setSelectedItem(lic[i]);
+                _licCombos.get(i).setSelectedItem(licProg[i]);
             }
             _allGoldLic.setEnabled(true);
 
-            String[] ev = _save.GetEvents();
-            for(int i = 0; i < ev.length; i++) {
-                _evCombos.get(i).setEnabled(true);
-                _evCombos.get(i).setSelectedItem(ev[i]);
+            String[] carEvProg = _save.GetCareerEvents();
+            for(int i = 0; i < carEvProg.length; i++) {
+                _carEvCombos.get(i).setEnabled(true);
+                _carEvCombos.get(i).setSelectedItem(carEvProg[i]);
             }
-            _allGoldEv.setEnabled(true);
+            _allGoldCarEv.setEnabled(true);
+
+            String[] arcEvProg = _save.GetArcadeEvents();
+            for(int i = 0; i < arcEvProg.length; i++) {
+                _arcEvCombos.get(i).setEnabled(true);
+                _arcEvCombos.get(i).setSelectedItem(arcEvProg[i]);
+            }
+            _allHardArcEv.setEnabled(true);
 
             _update.setEnabled(true);
             _close.setEnabled(true);
@@ -272,15 +313,20 @@ public class Form extends JFrame {
                 _save.UpdateCar(i, car.toString());
             }
 
-            String[] lic = new String[_licCombos.size()];
-            for(int i = 0; i < lic.length; i++)
-                lic[i] = (String) _licCombos.get(i).getSelectedItem();
-            _save.UpdateLicenses(lic);
+            String[] licProg = new String[_licCombos.size()];
+            for(int i = 0; i < licProg.length; i++)
+                licProg[i] = (String) _licCombos.get(i).getSelectedItem();
+            _save.UpdateLicenses(licProg);
 
-            String[] ev = new String[_evCombos.size()];
-            for(int i = 0; i < ev.length; i++)
-                ev[i] = (String) _evCombos.get(i).getSelectedItem();
-            _save.UpdateEvents(ev);
+            String[] carEvProg = new String[_carEvCombos.size()];
+            for(int i = 0; i < carEvProg.length; i++)
+                carEvProg[i] = (String) _carEvCombos.get(i).getSelectedItem();
+            _save.UpdateCareerEvents(carEvProg);
+
+            String[] arcEvProg = new String[_arcEvCombos.size()];
+            for(int i = 0; i < arcEvProg.length; i++)
+                arcEvProg[i] = (String) _arcEvCombos.get(i).getSelectedItem();
+            _save.UpdateArcadeEvents(arcEvProg);
 
             _save.Update();
             JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
@@ -301,9 +347,14 @@ public class Form extends JFrame {
             combo.setSelectedItem("Gold");
     }
 
-    private void AllGoldEv() {
-        for(JComboBox<String> combo : _evCombos)
+    private void AllGoldCarEv() {
+        for(JComboBox<String> combo : _carEvCombos)
             combo.setSelectedItem("Gold");
+    }
+
+    private void AllHardArcEv() {
+        for(JComboBox<String> combo : _arcEvCombos)
+            combo.setSelectedItem("Hard");
     }
 
     private void ClearData() {
@@ -325,11 +376,17 @@ public class Form extends JFrame {
         }
         _allGoldLic.setEnabled(false);
 
-        for(JComboBox<String> combo : _evCombos) {
+        for(JComboBox<String> combo : _carEvCombos) {
             combo.setSelectedItem("");
             combo.setEnabled(false);
         }
-        _allGoldEv.setEnabled(false);
+        _allGoldCarEv.setEnabled(false);
+
+        for(JComboBox<String> combo : _arcEvCombos) {
+            combo.setSelectedItem("");
+            combo.setEnabled(false);
+        }
+        _allHardArcEv.setEnabled(false);
 
         _save = null;
     }

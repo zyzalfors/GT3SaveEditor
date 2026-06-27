@@ -38,6 +38,10 @@ public class GT3Save {
     private static final int _carsSkipsOffset = 116;
     private static final int _carsSkipsSize = 4;
 
+    private static final int _arcadeAreasOffset = 124;
+    private static final int _arcadeAreasSize = 4;
+    public static final String[] arcadeAreas = new String[] {"A", "B", "C", "D", "E", "F", "End"};
+
     private static final int _trophiesOffset = 240;
     private static final int _trophiesSize = 4;
 
@@ -62,11 +66,22 @@ public class GT3Save {
                                                                      "Silver", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
                                                                      "Gold", new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
 
-    public static final int eventCount = 364;
-    public static final int _eventSkip = 4;
-    public static final Map<String, Integer> eventProgress = Map.of("None", 0xF7, "Bronze", 0xFD, "Silver", 0xFE, "Gold", 0xFF);
+    private static final int _careerEventSkip = 4;
+    public static final int careerEventCount = 364;
+    public static final Map<String, Integer> careerProgress = Map.of("None", 0xF7, "Bronze", 0xFD, "Silver", 0xFE, "Gold", 0xFF);
 
-    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
+    private static final int _easyArcadeEventSkip = 1720;
+    private static final int _difficultArcadeEventSkip = 680;
+    private static final int _arcadeEventSkip = 20;
+    private static final Map<String, Integer> _arcadeProgress = Map.of("None", 0xF7, "Completed", 0xFF);
+    public static final String[] arcadeTracks = new String[] {"Super Speedway", "Mid-Field", "Smokey Mountain", "Swiss Alps", "Trial Mountain", "Mid-Field II", "Smokey Mountain II",
+                                                              "Tokyo Route 246", "Grand Valley", "Laguna Seca", "Rome", "Tahiti", "Swiss Alps II", "Trial Mountain II",
+                                                              "Deep Forest", "Special Stage Route 5", "Seattle", "Test Course", "Tokyo Route 246 II", "Grand Valley II", "Rome II",
+                                                              "Tahiti II", "Tahiti Maze", "Apricot Hill", "Special Stage Route 11", "Deep Forest II", "Special Stage Route 5 II", "Seattle II",
+                                                              "Cote d'Azure", "Special Stage Route 5 Wet", "Apricot Hill II", "Special Stage Route 11 II", "Tahiti Maze II", "Special Stage Route 5 Wet II"};
+    public static final String[] arcadeProgress = new String[] {"Easy", "Medium", "Hard", "None"};
+
+    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, ARCADE_AREAS, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -137,6 +152,11 @@ public class GT3Save {
                 size = _carsSkipsSize;
                 break;
 
+            case ARCADE_AREAS:
+                offset = _arcadeAreasOffset;
+                size = _arcadeAreasSize;
+                break;
+
             case TROPHIES:
                 offset = _trophiesOffset;
                 size = _trophiesSize;
@@ -184,6 +204,11 @@ public class GT3Save {
             case WINS:
                 offset = _winsOffset;
                 size = _winsSize;
+                break;
+
+            case ARCADE_AREAS:
+                offset = _arcadeAreasOffset;
+                size = _arcadeAreasSize;
                 break;
 
             case TROPHIES:
@@ -338,58 +363,103 @@ public class GT3Save {
    }
 
     public String[] GetLicenses() {
-        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize;
+        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
 
-        String[] lic = new String[licenses.length * testsPerLicense];
+        String[] progress = new String[licenses.length * testsPerLicense];
         byte[] bytes = new byte[_licenseSize];
 
-        for(int i = 0; i < lic.length; i++) {
+        for(int i = 0; i < progress.length; i++) {
             int offset = firstLicOffset + _licenseSkip * i;
             System.arraycopy(_bytes, offset, bytes, 0, _licenseSize);
 
-            lic[i] = "";
+            progress[i] = "None";
             for(String prog : licenseProgress.keySet()) {
-                if(Arrays.equals(licenseProgress.get(prog), bytes)) lic[i] = prog;
+                if(Arrays.equals(licenseProgress.get(prog), bytes)) progress[i] = prog;
             }
         }
 
-        return lic;
+        return progress;
     }
 
-    public void UpdateLicenses(String[] lic) {
-        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize;
+    public void UpdateLicenses(String[] progress) {
+        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
 
-        for(int i = 0; i < lic.length; i++) {
-            byte[] bytes = licenseProgress.get(lic[i]);
+        for(int i = 0; i < progress.length; i++) {
+            byte[] bytes = licenseProgress.get(progress[i]);
             int offset = firstLicOffset + _licenseSkip * i;
             System.arraycopy(bytes, 0, _bytes, offset, _licenseSize);
         }
     }
 
-    public String[] GetEvents() {
-        int firstEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize + _licenseSkip * licenses.length * testsPerLicense;
-        String[] ev = new String[eventCount];
+    public String[] GetCareerEvents() {
+        int firstCarEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip;
+        String[] progress = new String[careerEventCount];
 
-        for(int i = 0; i < ev.length; i++) {
-            int offset = firstEventOffset + _eventSkip * i;
+        for(int i = 0; i < progress.length; i++) {
+            int offset = firstCarEventOffset + _careerEventSkip * i;
             int b = _bytes[offset] & 0xFF;
 
-            ev[i] = "";
-            for(String prog : eventProgress.keySet()) {
-                if(((int) eventProgress.get(prog)) == b) ev[i] = prog;
+            progress[i] = "None";
+            for(String prog : careerProgress.keySet()) {
+                if(((int) careerProgress.get(prog)) == b) progress[i] = prog;
             }
         }
 
-        return ev;
+        return progress;
     }
 
-    public void UpdateEvents(String[] ev) {
-        int firstEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + GetInt(VALUE.CARS_SKIPS) * _carsSkipSize + _licenseSkip * licenses.length * testsPerLicense;
+    public void UpdateCareerEvents(String[] progress) {
+        int firstCarEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip;
 
-        for(int i = 0; i < ev.length; i++) {
-            int offset = firstEventOffset + _eventSkip * i;
-            _bytes[offset] = (byte) ((int) eventProgress.get(ev[i]));
+        for(int i = 0; i < progress.length; i++) {
+            int offset = firstCarEventOffset + _careerEventSkip * i;
+            _bytes[offset] = (byte) ((int) careerProgress.get(progress[i]));
         }
+    }
+
+    public String[] GetArcadeEvents() {
+        int firstEasyArcEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip + _easyArcadeEventSkip;
+        String[] progress = new String[arcadeTracks.length + 1];
+
+        for(int i = 0; i < progress.length - 1; i++) {
+            progress[i] = "None";
+
+            for(int j = 0; j < arcadeProgress.length - 1; j++) {
+                int offset = firstEasyArcEventOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
+                int b = _bytes[offset] & 0xFF;
+
+                String tmpProg = "";
+                for(String prog : _arcadeProgress.keySet()) {
+                    if(((int) _arcadeProgress.get(prog)) == b) tmpProg = prog;
+                }
+
+                if(tmpProg.equals("Completed")) progress[i] = arcadeProgress[j];
+            }
+        }
+
+        progress[progress.length - 1] = arcadeAreas[GetInt(VALUE.ARCADE_AREAS)];
+        return progress;
+    }
+
+    public void UpdateArcadeEvents(String[] progress) {
+        int firstEasyArcEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip + _easyArcadeEventSkip;
+
+        for(int i = 0; i < progress.length - 1; i++) {
+            for(int j = 0; j < arcadeProgress.length - 1; j++) {
+                int offset = firstEasyArcEventOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
+
+                if(progress[i].equals(arcadeProgress[j]))
+                    _bytes[offset] = (byte) ((int) _arcadeProgress.get("Completed"));
+                else
+                    _bytes[offset] = (byte) ((int) _arcadeProgress.get("None"));
+            }
+        }
+
+        int i = 0;
+        for(i = 0; i < arcadeAreas.length; i++)
+            if(arcadeAreas[i].equals(progress[progress.length - 1])) break;
+
+        UpdateInt(VALUE.ARCADE_AREAS, i);
     }
 
     public void Update() throws Exception {
