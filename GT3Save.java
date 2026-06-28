@@ -8,7 +8,6 @@ public class GT3Save {
     private final byte[] _bytes;
     private final String _path;
 
-    private static final int _headerOffset = 0;
     private static final int _headerSize = 64;
 
     private static final int _endOfSaveOffset = 4;
@@ -38,9 +37,37 @@ public class GT3Save {
     private static final int _carsSkipsOffset = 116;
     private static final int _carsSkipsSize = 4;
 
-    private static final int _arcadeAreasOffset = 124;
-    private static final int _arcadeAreasSize = 4;
-    public static final String[] arcadeAreas = new String[] {"A", "B", "C", "D", "E", "F", "End"};
+    private static final int _arcadeTracksProgressOffset = 124;
+    public static final Map<String, Byte> arcadeTracksProgress = Map.of("None", (byte) 0xFF, "Easy A", (byte) 0xFE, "Easy B", (byte) 0xFD, "Easy C", (byte) 0xFC, "Easy D", (byte) 0xFB, "Easy E", (byte) 0xFA, "Easy F", (byte) 0xF9);
+
+    private static final int _arcadeCarsProgressOffset = 128;
+    private static final int _arcadeCarsProgressSkip = 4;
+    public static final Map<String, byte[]> arcadeCarsProgress = Map.ofEntries(Map.entry("None",     new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal A", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal B", new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal C", new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal D", new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal E", new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Normal F", new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Hard A",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Hard B",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Hard C",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Hard D",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF, (byte) 0xFF}),
+                                                                               Map.entry("Hard E",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFF}),
+                                                                               Map.entry("Hard F",   new byte[] {(byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE, (byte) 0xFE}));
+
+    private static final int _arcadeEventEasyProgressSkip = 1720;
+    private static final int _difficultArcadeEventSkip = 680;
+    private static final int _arcadeEventSkip = 20;
+    public static final Map<String, byte[]> arcadeEventProgress = Map.of("None",   new byte[] {(byte) 0xF7, (byte) 0xF7, (byte) 0xF7},
+                                                                         "Easy",   new byte[] {(byte) 0xFF, (byte) 0xF7, (byte) 0xF7},
+                                                                         "Normal", new byte[] {(byte) 0xF7, (byte) 0xFF, (byte) 0xF7},
+                                                                         "Hard",   new byte[] {(byte) 0xF7, (byte) 0xF7, (byte) 0xFF});
+    public static final String[] arcadeTracks = new String[] {"Super Speedway", "Mid-Field", "Smokey Mountain", "Swiss Alps", "Trial Mountain", "Mid-Field II", "Smokey Mountain II",
+                                                              "Tokyo Route 246", "Grand Valley", "Laguna Seca", "Rome", "Tahiti", "Swiss Alps II", "Trial Mountain II",
+                                                              "Deep Forest", "Special Stage Route 5", "Seattle", "Test Course", "Tokyo Route 246 II", "Grand Valley II", "Rome II",
+                                                              "Tahiti II", "Tahiti Maze", "Apricot Hill", "Special Stage Route 11", "Deep Forest II", "Special Stage Route 5 II", "Seattle II",
+                                                              "Cote d'Azure", "Special Stage Route 5 Wet", "Apricot Hill II", "Special Stage Route 11 II", "Tahiti Maze II", "Special Stage Route 5 Wet II"};
 
     private static final int _trophiesOffset = 240;
     private static final int _trophiesSize = 4;
@@ -49,46 +76,33 @@ public class GT3Save {
     private static final int _bonusCarsSize = 4;
 
     private static final int _langOffset = 264;
-    private static final int _langSize = 1;
-    public static final Map<String, Integer> languages = Map.of("ES", 0xF9, "IT", 0xFA, "DE", 0xFB, "FR", 0xFC, "EN-GB", 0xFD, "EN-US", 0xFE, "JA", 0xFF);
+    public static final Map<String, Byte> languages = Map.of("ES", (byte) 0xF9, "IT", (byte) 0xFA, "DE", (byte) 0xFB, "FR", (byte) 0xFC, "EN-GB", (byte) 0xFD, "EN-US", (byte) 0xFE, "JA", (byte) 0xFF);
 
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
     private static final int _carCodeSize = 8;
     private static final int _carsSkipSize = 68;
 
-    private static final int _licenseSize = 4;
-    private static final int _licenseSkip = 340;
+    private static final int _careerLicenseProgressSkip = 340;
     public static final int testsPerLicense = 8;
-    public static final String[] licenses = new String[] {"B", "A", "IB", "IA", "S", "R"};
-    public static final Map<String, byte[]> licenseProgress = Map.of("None", new byte[] {0x00, 0x00, 0x00, 0x00},
-                                                                     "Bronze", new byte[] {(byte) 0xFD, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
-                                                                     "Silver", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
-                                                                     "Gold", new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
+    public static final String[] careerLicenses = new String[] {"B", "A", "IB", "IA", "S", "R"};
+    public static final Map<String, byte[]> careerLicenseProgress = Map.of("None",   new byte[] {0x00, 0x00, 0x00, 0x00},
+                                                                           "Bronze", new byte[] {(byte) 0xFD, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
+                                                                           "Silver", new byte[] {(byte) 0xFE, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF},
+                                                                           "Gold",   new byte[] {(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
 
-    private static final int _careerEventSkip = 4;
+    private static final int _careerEventProgressSkip = 4;
     public static final int careerEventCount = 364;
-    public static final Map<String, Integer> careerProgress = Map.of("None", 0xF7, "Bronze", 0xFD, "Silver", 0xFE, "Gold", 0xFF);
+    public static final Map<String, Byte> careerEventProgress = Map.of("None", (byte) 0xF7, "Bronze", (byte) 0xFD, "Silver", (byte) 0xFE, "Gold", (byte) 0xFF);
 
-    private static final int _easyArcadeEventSkip = 1720;
-    private static final int _difficultArcadeEventSkip = 680;
-    private static final int _arcadeEventSkip = 20;
-    private static final Map<String, Integer> _arcadeProgress = Map.of("None", 0xF7, "Completed", 0xFF);
-    public static final String[] arcadeTracks = new String[] {"Super Speedway", "Mid-Field", "Smokey Mountain", "Swiss Alps", "Trial Mountain", "Mid-Field II", "Smokey Mountain II",
-                                                              "Tokyo Route 246", "Grand Valley", "Laguna Seca", "Rome", "Tahiti", "Swiss Alps II", "Trial Mountain II",
-                                                              "Deep Forest", "Special Stage Route 5", "Seattle", "Test Course", "Tokyo Route 246 II", "Grand Valley II", "Rome II",
-                                                              "Tahiti II", "Tahiti Maze", "Apricot Hill", "Special Stage Route 11", "Deep Forest II", "Special Stage Route 5 II", "Seattle II",
-                                                              "Cote d'Azure", "Special Stage Route 5 Wet", "Apricot Hill II", "Special Stage Route 11 II", "Tahiti Maze II", "Special Stage Route 5 Wet II"};
-    public static final String[] arcadeProgress = new String[] {"Easy", "Medium", "Hard", "None"};
-
-    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, ARCADE_AREAS, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
         _bytes = Files.readAllBytes(Paths.get(path));
     }
 
-    private int CalcCrc32() {
+    private int CalcCRC32() {
         int toOffset = _headerSize - 1 + GetInt(VALUE.END_OF_SAVE);
         byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset + 1);
 
@@ -98,13 +112,13 @@ public class GT3Save {
         return (int) crc32.getValue();
     }
 
-    public void UpdateCrc32() {
-        int crc32 = CalcCrc32();
+    public void UpdateCRC32() {
+        int crc32 = CalcCRC32();
         UpdateInt(VALUE.CRC32, crc32);
     }
 
-    public boolean CheckCrc32() {
-        int calcCrc32 = CalcCrc32();
+    public boolean ValidCRC32() {
+        int calcCrc32 = CalcCRC32();
         int crc32 = GetInt(VALUE.CRC32);
         return crc32 == calcCrc32;
     }
@@ -150,11 +164,6 @@ public class GT3Save {
             case CARS_SKIPS:
                 offset = _carsSkipsOffset;
                 size = _carsSkipsSize;
-                break;
-
-            case ARCADE_AREAS:
-                offset = _arcadeAreasOffset;
-                size = _arcadeAreasSize;
                 break;
 
             case TROPHIES:
@@ -204,11 +213,6 @@ public class GT3Save {
             case WINS:
                 offset = _winsOffset;
                 size = _winsSize;
-                break;
-
-            case ARCADE_AREAS:
-                offset = _arcadeAreasOffset;
-                size = _arcadeAreasSize;
                 break;
 
             case TROPHIES:
@@ -292,10 +296,9 @@ public class GT3Save {
     public String GetStr(VALUE value) {
         switch(value) {
             case LANGUAGE:
-                int b = _bytes[_langOffset] & 0xFF;
-                for(String lang : languages.keySet()) {
-                    if(((int) languages.get(lang)) == b) return lang;
-                }
+                byte b = _bytes[_langOffset];
+                for(String lang : languages.keySet())
+                    if(languages.get(lang) == b) return lang;
                 break;
 
             default:
@@ -309,7 +312,7 @@ public class GT3Save {
         switch(value) {
             case LANGUAGE:
                 if(languages.containsKey(val))
-                    _bytes[_langOffset] = (byte) ((int) languages.get(val));
+                    _bytes[_langOffset] = languages.get(val);
                 break;
 
             default:
@@ -317,7 +320,7 @@ public class GT3Save {
         }
     }
 
-    public String[][] GetCars() {
+    public String[][] GetCareerGarage() {
         int carCount = GetInt(VALUE.CAR_COUNT);
 
         String[][] cars = new String[carCount][2];
@@ -362,108 +365,120 @@ public class GT3Save {
         System.arraycopy(bytes, 0, _bytes, offset, _carSize);
    }
 
-    public String[] GetLicenses() {
-        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
+    public String[] GetCareerLicenseProgress() {
+        int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
+        int carLicProgSize = careerLicenseProgress.get("None").length;
 
-        String[] progress = new String[licenses.length * testsPerLicense];
-        byte[] bytes = new byte[_licenseSize];
+        String[] progress = new String[careerLicenses.length * testsPerLicense];
+        byte[] bytes = new byte[carLicProgSize];
 
         for(int i = 0; i < progress.length; i++) {
-            int offset = firstLicOffset + _licenseSkip * i;
-            System.arraycopy(_bytes, offset, bytes, 0, _licenseSize);
+            int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
+            System.arraycopy(_bytes, offset, bytes, 0, carLicProgSize);
 
             progress[i] = "None";
-            for(String prog : licenseProgress.keySet()) {
-                if(Arrays.equals(licenseProgress.get(prog), bytes)) progress[i] = prog;
-            }
+            for(String prog : careerLicenseProgress.keySet())
+                if(Arrays.equals(careerLicenseProgress.get(prog), bytes)) progress[i] = prog;
         }
 
         return progress;
     }
 
-    public void UpdateLicenses(String[] progress) {
-        int firstLicOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
+    public void UpdateCareerLicenseProgress(String[] progress) {
+        int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
+        int carLicProgSize = careerLicenseProgress.get("None").length;
 
         for(int i = 0; i < progress.length; i++) {
-            byte[] bytes = licenseProgress.get(progress[i]);
-            int offset = firstLicOffset + _licenseSkip * i;
-            System.arraycopy(bytes, 0, _bytes, offset, _licenseSize);
+            byte[] bytes = careerLicenseProgress.get(progress[i]);
+            int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
+            System.arraycopy(bytes, 0, _bytes, offset, carLicProgSize);
         }
     }
 
-    public String[] GetCareerEvents() {
-        int firstCarEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip;
+    public String[] GetCareerEventProgress() {
+        int firstCarEventProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
         String[] progress = new String[careerEventCount];
 
         for(int i = 0; i < progress.length; i++) {
-            int offset = firstCarEventOffset + _careerEventSkip * i;
-            int b = _bytes[offset] & 0xFF;
+            int offset = firstCarEventProgOffset + _careerEventProgressSkip * i;
+            byte b = _bytes[offset];
 
             progress[i] = "None";
-            for(String prog : careerProgress.keySet()) {
-                if(((int) careerProgress.get(prog)) == b) progress[i] = prog;
-            }
+            for(String prog : careerEventProgress.keySet())
+                if(careerEventProgress.get(prog) == b) progress[i] = prog;
         }
 
         return progress;
     }
 
-    public void UpdateCareerEvents(String[] progress) {
-        int firstCarEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip;
+    public void UpdateCareerEventProgress(String[] progress) {
+        int firstCarEventProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
 
         for(int i = 0; i < progress.length; i++) {
-            int offset = firstCarEventOffset + _careerEventSkip * i;
-            _bytes[offset] = (byte) ((int) careerProgress.get(progress[i]));
+            int offset = firstCarEventProgOffset + _careerEventProgressSkip * i;
+            _bytes[offset] = careerEventProgress.get(progress[i]);
         }
     }
 
-    public String[] GetArcadeEvents() {
-        int firstEasyArcEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip + _easyArcadeEventSkip;
-        String[] progress = new String[arcadeTracks.length + 1];
+    public String[] GetArcadeProgress() {
+        int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
-        for(int i = 0; i < progress.length - 1; i++) {
-            progress[i] = "None";
+        String[] progress = new String[arcadeTracks.length + 2];
+        byte[] bytes = new byte[arcadeEventProgress.get("None").length];
 
-            for(int j = 0; j < arcadeProgress.length - 1; j++) {
-                int offset = firstEasyArcEventOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
-                int b = _bytes[offset] & 0xFF;
-
-                String tmpProg = "";
-                for(String prog : _arcadeProgress.keySet()) {
-                    if(((int) _arcadeProgress.get(prog)) == b) tmpProg = prog;
-                }
-
-                if(tmpProg.equals("Completed")) progress[i] = arcadeProgress[j];
+        for(int i = 0; i < progress.length - 2; i++) {
+            for(int j = 0; j < bytes.length; j++) {
+                int offset = firstArcEvEasyProgOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
+                bytes[j] = _bytes[offset];
             }
+
+            progress[i] = "None";
+            for(String prog : arcadeEventProgress.keySet())
+                if(Arrays.equals(arcadeEventProgress.get(prog), bytes)) progress[i] = prog;
         }
 
-        progress[progress.length - 1] = arcadeAreas[GetInt(VALUE.ARCADE_AREAS)];
+        byte b = _bytes[_arcadeTracksProgressOffset];
+
+        progress[progress.length - 2] = "None";
+        for(String prog : arcadeTracksProgress.keySet())
+            if(arcadeTracksProgress.get(prog) == b) progress[progress.length - 2] = prog;
+
+        bytes = new byte[arcadeCarsProgress.get("None").length];
+        for(int i = 0; i < bytes.length; i++) {
+            int offset = _arcadeCarsProgressOffset + _arcadeCarsProgressSkip * i;
+            bytes[i] = _bytes[offset];
+        }
+
+        progress[progress.length - 1] = "None";
+        for(String prog : arcadeCarsProgress.keySet())
+            if(Arrays.equals(arcadeCarsProgress.get(prog), bytes)) progress[progress.length - 1] = prog;
+
         return progress;
     }
 
-    public void UpdateArcadeEvents(String[] progress) {
-        int firstEasyArcEventOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + licenses.length * testsPerLicense * _licenseSkip + _easyArcadeEventSkip;
+    public void UpdateArcadeProgress(String[] progress) {
+        int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
-        for(int i = 0; i < progress.length - 1; i++) {
-            for(int j = 0; j < arcadeProgress.length - 1; j++) {
-                int offset = firstEasyArcEventOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
+        for(int i = 0; i < progress.length - 2; i++) {
+            byte[] bytes = arcadeEventProgress.get(progress[i]);
 
-                if(progress[i].equals(arcadeProgress[j]))
-                    _bytes[offset] = (byte) ((int) _arcadeProgress.get("Completed"));
-                else
-                    _bytes[offset] = (byte) ((int) _arcadeProgress.get("None"));
+            for(int j = 0; j < bytes.length; j++) {
+                int offset = firstArcEvEasyProgOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
+                _bytes[offset] = bytes[j];
             }
         }
 
-        int i = 0;
-        for(i = 0; i < arcadeAreas.length; i++)
-            if(arcadeAreas[i].equals(progress[progress.length - 1])) break;
+        _bytes[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
 
-        UpdateInt(VALUE.ARCADE_AREAS, i);
+        byte[] bytes = arcadeCarsProgress.get(progress[progress.length - 1]);
+        for(int i = 0; i < bytes.length; i++) {
+            int offset = _arcadeCarsProgressOffset + _arcadeCarsProgressSkip * i;
+            _bytes[offset] = bytes[i];
+        }
     }
 
     public void Update() throws Exception {
-        UpdateCrc32();
+        UpdateCRC32();
         Files.write(Paths.get(_path), _bytes);
     }
 }
