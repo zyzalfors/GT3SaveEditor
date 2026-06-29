@@ -389,6 +389,7 @@ public class GT3Save {
         int carLicProgSize = careerLicenseProgress.get("None").length;
 
         for(int i = 0; i < progress.length; i++) {
+            if(!careerLicenseProgress.containsKey(progress[i])) continue;
             byte[] bytes = careerLicenseProgress.get(progress[i]);
             int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
             System.arraycopy(bytes, 0, _bytes, offset, carLicProgSize);
@@ -396,11 +397,11 @@ public class GT3Save {
     }
 
     public String[] GetCareerEventProgress() {
-        int firstCarEventProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
+        int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
         String[] progress = new String[careerEventCount];
 
         for(int i = 0; i < progress.length; i++) {
-            int offset = firstCarEventProgOffset + _careerEventProgressSkip * i;
+            int offset = firstCarEvProgOffset + _careerEventProgressSkip * i;
             byte b = _bytes[offset];
 
             progress[i] = "None";
@@ -412,10 +413,11 @@ public class GT3Save {
     }
 
     public void UpdateCareerEventProgress(String[] progress) {
-        int firstCarEventProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
+        int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
 
         for(int i = 0; i < progress.length; i++) {
-            int offset = firstCarEventProgOffset + _careerEventProgressSkip * i;
+            if(!careerEventProgress.containsKey(progress[i])) continue;
+            int offset = firstCarEvProgOffset + _careerEventProgressSkip * i;
             _bytes[offset] = careerEventProgress.get(progress[i]);
         }
     }
@@ -460,6 +462,7 @@ public class GT3Save {
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
         for(int i = 0; i < progress.length - 2; i++) {
+            if(!arcadeEventProgress.containsKey(progress[i])) continue;
             byte[] bytes = arcadeEventProgress.get(progress[i]);
 
             for(int j = 0; j < bytes.length; j++) {
@@ -468,7 +471,10 @@ public class GT3Save {
             }
         }
 
-        _bytes[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
+        if(arcadeTracksProgress.containsKey(progress[progress.length - 2]))
+            _bytes[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
+
+        if(!arcadeCarsProgress.containsKey(progress[progress.length - 1])) return;
 
         byte[] bytes = arcadeCarsProgress.get(progress[progress.length - 1]);
         for(int i = 0; i < bytes.length; i++) {
