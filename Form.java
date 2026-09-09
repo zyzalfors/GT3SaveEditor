@@ -376,6 +376,7 @@ public class Form extends JFrame {
                 car.append(model.getValueAt(i, 0));
                 car.append(model.getValueAt(i, 1));
                 _save.UpdateCar(i, car.toString());
+                car.setLength(0);
             }
 
             String[] carLicProg = new String[_carLicProgCombos.size()];
