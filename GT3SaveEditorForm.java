@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.table.*;
 import GT3SaveEditor.GT3Save.*;
 
-public class Form extends JFrame {
+public class GT3SaveEditorForm extends JFrame {
     private static final String _title = "GT3 Save Editor";
     private ArrayList<JTextField> _texts = new ArrayList<JTextField>();
     private JComboBox<String> _langCombo;
