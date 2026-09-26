@@ -22,7 +22,7 @@ public class GT3SaveEditorForm extends JFrame {
     private JMenuItem _close;
     private GT3Save _save;
 
-    public Form(String path) {
+    public GT3SaveEditorForm(String path) {
         super(_title);
         InitUI();
         PrintSave(path);
