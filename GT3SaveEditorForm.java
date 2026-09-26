@@ -99,7 +99,16 @@ public class GT3SaveEditorForm extends JFrame {
         _langCombo.setEnabled(false);
         panel.add(_langCombo);
 
-        return panel;
+        panel.setPreferredSize(new Dimension(400, 35 + labels.length * 30));
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        JPanel container = new JPanel(new BorderLayout());
+        container.add(scrollPane, BorderLayout.CENTER);
+
+        return container;
     }
 
     private JPanel InitCareerStatusPanel() {
@@ -114,17 +123,33 @@ public class GT3SaveEditorForm extends JFrame {
             JTextField text = new JTextField();
             text.setBounds(80, 5 + i * 30, 300, 20);
             text.setEnabled(false);
+
             panel.add(text);
             _texts.add(text);
         }
 
-        return panel;
+        panel.setPreferredSize(new Dimension(400, 35 + labels.length * 30));
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        JPanel container = new JPanel(new BorderLayout());
+        container.add(scrollPane, BorderLayout.CENTER);
+
+        return container;
     }
 
     private JPanel InitCareerGaragePanel() {
         _carGarTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
+
+        JScrollPane scrollPane = new JScrollPane(_carGarTable);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JScrollPane(_carGarTable));
+        panel.add(scrollPane, BorderLayout.CENTER);
+
         return panel;
     }
 
@@ -142,7 +167,7 @@ public class GT3SaveEditorForm extends JFrame {
 
             for(int j = 0; j < GT3Save.testsPerLicense; j++) {
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
-                combo.setBounds(30 + j * 80, 5 + i * 30, 70, 20);
+                combo.setBounds(90 + j * 80, 5 + i * 30, 70, 20);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _carLicProgCombos.add(combo);
@@ -154,7 +179,18 @@ public class GT3SaveEditorForm extends JFrame {
         _allGoldCarLicProg.setEnabled(false);
         panel.add(_allGoldCarLicProg);
 
-        return panel;
+        int contentWidth = Math.max(300, 90 + GT3Save.testsPerLicense * 80);
+        int contentHeight = Math.max(100, 35 + (GT3Save.careerLicenses.length + 1) * 30);
+        panel.setPreferredSize(new Dimension(contentWidth, contentHeight));
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        JPanel container = new JPanel(new BorderLayout());
+        container.add(scrollPane, BorderLayout.CENTER);
+
+        return container;
     }
 
     private JPanel InitCareerEventProgressPanel() {
@@ -163,11 +199,17 @@ public class GT3SaveEditorForm extends JFrame {
         ArrayList<String> prog = new ArrayList<String>(GT3Save.careerEventProgress.keySet());
         Collections.sort(prog);
 
-        int i;
-        for(i = 0; i < GT3Save.careerEventCount / 14; i++) {
-            for(int j = 0; j < GT3Save.careerEventCount / 26; j++) {
+        int rows = GT3Save.careerEventCount / 14;
+        int cols = GT3Save.careerEventCount / 26;
+        int comboWidth = 70;
+        int comboSpacingX = 80;
+        int comboHeight = 20;
+        int comboSpacingY = 30;
+
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < cols; j++) {
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
-                combo.setBounds(10 + j * 80, 5 + i * 30, 70, 20);
+                combo.setBounds(10 + j * comboSpacingX, 5 + i * comboSpacingY, comboWidth, comboHeight);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _carEvProgCombos.add(combo);
@@ -175,11 +217,22 @@ public class GT3SaveEditorForm extends JFrame {
         }
 
         _allGoldCarEvProg = new JButton("All gold");
-        _allGoldCarEvProg.setBounds(10, 5 + i * 30, 80, 20);
+        _allGoldCarEvProg.setBounds(10, 5 + rows * comboSpacingY, 80, 20);
         _allGoldCarEvProg.setEnabled(false);
         panel.add(_allGoldCarEvProg);
 
-        return panel;
+        int contentWidth = 20 + cols * comboSpacingX;
+        int contentHeight = 35 + rows * comboSpacingY;
+        panel.setPreferredSize(new Dimension(contentWidth, contentHeight));
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        JPanel container = new JPanel(new BorderLayout());
+        container.add(scrollPane, BorderLayout.CENTER);
+
+        return container;
     }
 
     private JPanel InitArcadeProgressPanel() {
@@ -188,54 +241,81 @@ public class GT3SaveEditorForm extends JFrame {
         ArrayList<String> prog = new ArrayList<String>(GT3Save.arcadeEventProgress.keySet());
         Collections.sort(prog);
 
-        int i;
-        for(i = 0; i < GT3Save.arcadeTracks.length / 2; i++) {
-            for(int j = 0; j < GT3Save.arcadeTracks.length / 17; j++) {
-                JLabel label = new JLabel(GT3Save.arcadeTracks[i * GT3Save.arcadeTracks.length / 17 + j] + ":");
-                label.setBounds(10 + j * 300, 5 + i * 30, 165, 20);
+        int trackCount = GT3Save.arcadeTracks.length;
+        int cols = 2;
+        int rows = (trackCount + cols - 1) / cols;
+        int labelWidth = 165;
+        int comboWidth = 80;
+        int columnWidth = 325;
+        int rowHeight = 30;
+        int trackIndex = 0;
+
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < cols && trackIndex < trackCount; j++) {
+                JLabel label = new JLabel(GT3Save.arcadeTracks[trackIndex] + ":");
+                label.setBounds(10 + j * columnWidth, 5 + i * rowHeight, labelWidth, 20);
                 panel.add(label);
 
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
-                combo.setBounds(160 + j * 325, 5 + i * 30, 80, 20);
+                combo.setBounds(160 + j * columnWidth, 5 + i * rowHeight, comboWidth, 20);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _arcProgCombos.add(combo);
+                trackIndex++;
             }
         }
 
+        int currentRow = rows;
         _allHardArcEvProg = new JButton("All hard");
-        _allHardArcEvProg.setBounds(10, 5 + i * 30, 80, 20);
+        _allHardArcEvProg.setBounds(10, 5 + currentRow * rowHeight, 80, 20);
         _allHardArcEvProg.setEnabled(false);
         panel.add(_allHardArcEvProg);
 
         prog = new ArrayList<String>(GT3Save.arcadeTracksProgress.keySet());
         Collections.sort(prog);
+        currentRow++;
 
         JLabel bonTracksLabel = new JLabel("Bonus tracks:");
-        bonTracksLabel.setBounds(10, 5 + (++i) * 30, 70, 20);
+        bonTracksLabel.setBounds(10, 5 + currentRow * rowHeight, 120, 20);
         panel.add(bonTracksLabel);
 
         JComboBox<String> bonTracksCombo = new JComboBox<String>(prog.toArray(new String[0]));
-        bonTracksCombo.setBounds(160, 5 + i * 30, 80, 20);
+
+        bonTracksCombo.setBounds(160, 5 + currentRow * rowHeight, comboWidth, 20);
         bonTracksCombo.setEnabled(false);
+
         panel.add(bonTracksCombo);
         _arcProgCombos.add(bonTracksCombo);
 
         prog = new ArrayList<String>(GT3Save.arcadeCarsProgress.keySet());
         Collections.sort(prog);
+        currentRow++;
 
         JLabel bonCarsLabel = new JLabel("Bonus cars:");
-        bonCarsLabel.setBounds(10, 5 + (++i) * 30, 70, 20);
+        bonCarsLabel.setBounds(10, 5 + currentRow * rowHeight, 120, 20);
         panel.add(bonCarsLabel);
 
         JComboBox<String> bonCarsCombo = new JComboBox<String>(prog.toArray(new String[0]));
-        bonCarsCombo.setBounds(160, 5 + i * 30, 80, 20);
+        bonCarsCombo.setBounds(160, 5 + currentRow * rowHeight, comboWidth, 20);
         bonCarsCombo.setEnabled(false);
+
         panel.add(bonCarsCombo);
         _arcProgCombos.add(bonCarsCombo);
 
-        return panel;
+        int contentWidth = 20 + cols * columnWidth;
+        int contentHeight = 35 + (currentRow + 1) * rowHeight;
+        panel.setPreferredSize(new Dimension(contentWidth, contentHeight));
+
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+        JPanel container = new JPanel(new BorderLayout());
+        container.add(scrollPane, BorderLayout.CENTER);
+
+        return container;
     }
+
 
     private void AddEventHandlers() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
