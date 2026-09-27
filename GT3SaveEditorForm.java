@@ -24,11 +24,11 @@ public class GT3SaveEditorForm extends JFrame {
 
     public GT3SaveEditorForm(String path) {
         super(_title);
-        InitUI();
+        InitGUI();
         PrintSave(path);
     }
 
-    private void InitUI() {
+    private void InitGUI() {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         }
@@ -37,7 +37,7 @@ public class GT3SaveEditorForm extends JFrame {
         JTabbedPane pane = new JTabbedPane();
         pane.addTab("General", InitGeneralPanel());
         pane.addTab("Career status", InitCareerStatusPanel());
-        pane.addTab("Career garage", InitCareerGaragePanel());
+        pane.addTab("Career cars", InitCareerCarsPanel());
         pane.addTab("Career license progress", InitCareerLicenseProgressPanel());
         pane.addTab("Career event progress", InitCareerEventProgressPanel());
         pane.addTab("Arcade progress", InitArcadeProgressPanel());
@@ -96,6 +96,7 @@ public class GT3SaveEditorForm extends JFrame {
 
         _langCombo = new JComboBox<String>(langs.toArray(new String[0]));
         _langCombo.setBounds(80, 5 + i * 30, 300, 20);
+        _langCombo.setSelectedIndex(-1);
         _langCombo.setEnabled(false);
         panel.add(_langCombo);
 
@@ -140,8 +141,14 @@ public class GT3SaveEditorForm extends JFrame {
         return container;
     }
 
-    private JPanel InitCareerGaragePanel() {
-        _carGarTable = new JTable(new DefaultTableModel(new String[] {"Code", "Data"}, 0));
+    private JPanel InitCareerCarsPanel() {
+    	ArrayList<String> columns = new ArrayList<String>();
+    	columns.addAll(Arrays.asList(GT3Save.carInfos));
+    	columns.addAll(Arrays.asList(GT3Save.carParts));
+    	columns.addAll(Arrays.asList(GT3Save.carSettings));
+
+        _carGarTable = new JTable(new DefaultTableModel(columns.toArray(), 0));
+        _carGarTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
         JScrollPane scrollPane = new JScrollPane(_carGarTable);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -168,6 +175,7 @@ public class GT3SaveEditorForm extends JFrame {
             for(int j = 0; j < GT3Save.testsPerLicense; j++) {
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
                 combo.setBounds(90 + j * 80, 5 + i * 30, 70, 20);
+                combo.setSelectedIndex(-1);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _carLicProgCombos.add(combo);
@@ -210,6 +218,7 @@ public class GT3SaveEditorForm extends JFrame {
             for(int j = 0; j < cols; j++) {
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
                 combo.setBounds(10 + j * comboSpacingX, 5 + i * comboSpacingY, comboWidth, comboHeight);
+                combo.setSelectedIndex(-1);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _carEvProgCombos.add(combo);
@@ -258,6 +267,7 @@ public class GT3SaveEditorForm extends JFrame {
 
                 JComboBox<String> combo = new JComboBox<String>(prog.toArray(new String[0]));
                 combo.setBounds(160 + j * columnWidth, 5 + i * rowHeight, comboWidth, 20);
+                combo.setSelectedIndex(-1);
                 combo.setEnabled(false);
                 panel.add(combo);
                 _arcProgCombos.add(combo);
@@ -282,6 +292,7 @@ public class GT3SaveEditorForm extends JFrame {
         JComboBox<String> bonTracksCombo = new JComboBox<String>(prog.toArray(new String[0]));
 
         bonTracksCombo.setBounds(160, 5 + currentRow * rowHeight, comboWidth, 20);
+        bonTracksCombo.setSelectedIndex(-1);
         bonTracksCombo.setEnabled(false);
 
         panel.add(bonTracksCombo);
@@ -297,6 +308,7 @@ public class GT3SaveEditorForm extends JFrame {
 
         JComboBox<String> bonCarsCombo = new JComboBox<String>(prog.toArray(new String[0]));
         bonCarsCombo.setBounds(160, 5 + currentRow * rowHeight, comboWidth, 20);
+        bonCarsCombo.setSelectedIndex(-1);
         bonCarsCombo.setEnabled(false);
 
         panel.add(bonCarsCombo);
@@ -315,7 +327,6 @@ public class GT3SaveEditorForm extends JFrame {
 
         return container;
     }
-
 
     private void AddEventHandlers() {
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -339,7 +350,7 @@ public class GT3SaveEditorForm extends JFrame {
 
             _save = new GT3Save(path);
             if(!_save.ValidCRC32())
-                JOptionPane.showMessageDialog(null, "Invalid CRC32", "Info", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Invalid CRC32", "Info", JOptionPane.INFORMATION_MESSAGE);
 
             _texts.get(0).setEnabled(true);
             _texts.get(0).setEditable(false);
@@ -389,7 +400,7 @@ public class GT3SaveEditorForm extends JFrame {
 
             DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
             model.setRowCount(0);
-            for(Object[] car : _save.GetCareerGarage())
+            for(Object[] car : _save.GetCareerCars())
                 model.addRow(car);
 
             String[] carLicProg = _save.GetCareerLicenseProgress();
@@ -417,7 +428,7 @@ public class GT3SaveEditorForm extends JFrame {
             _close.setEnabled(true);
         }
         catch(Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             ClearData();
         }
     }
@@ -451,12 +462,12 @@ public class GT3SaveEditorForm extends JFrame {
             _save.UpdateStr(VALUE.LANGUAGE, lang);
 
             DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
-            StringBuilder car = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             for(int i = 0; i < model.getRowCount(); i++) {
-                car.append(model.getValueAt(i, 0));
-                car.append(model.getValueAt(i, 1));
-                _save.UpdateCar(i, car.toString());
-                car.setLength(0);
+            	for(int j = 0; j < model.getColumnCount(); j++)
+            		sb.append(model.getValueAt(i, j));
+                _save.UpdateCareerCar(i, sb.toString());
+                sb.setLength(0);
             }
 
             String[] carLicProg = new String[_carLicProgCombos.size()];
@@ -476,11 +487,11 @@ public class GT3SaveEditorForm extends JFrame {
 
             _save.Update();
 
-            JOptionPane.showMessageDialog(null, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
             UpdateCRC32();
         }
         catch(Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -513,25 +524,25 @@ public class GT3SaveEditorForm extends JFrame {
             text.setEnabled(false);
         }
 
-        _langCombo.setSelectedItem("");
+        _langCombo.setSelectedIndex(-1);
         _langCombo.setEnabled(false);
 
         ((DefaultTableModel) _carGarTable.getModel()).setRowCount(0);
 
         for(JComboBox<String> combo : _carLicProgCombos) {
-            combo.setSelectedItem("");
+            combo.setSelectedIndex(-1);
             combo.setEnabled(false);
         }
         _allGoldCarLicProg.setEnabled(false);
 
         for(JComboBox<String> combo : _carEvProgCombos) {
-            combo.setSelectedItem("");
+            combo.setSelectedIndex(-1);
             combo.setEnabled(false);
         }
         _allGoldCarEvProg.setEnabled(false);
 
         for(JComboBox<String> combo : _arcProgCombos) {
-            combo.setSelectedItem("");
+            combo.setSelectedIndex(-1);
             combo.setEnabled(false);
         }
         _allHardArcEvProg.setEnabled(false);

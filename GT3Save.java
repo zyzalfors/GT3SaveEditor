@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.zip.*;
 
 public class GT3Save {
-    private final byte[] _bytes;
+    private final byte[] _data;
     private final String _path;
 
     private static final int _headerSize = 64;
@@ -36,6 +36,7 @@ public class GT3Save {
 
     private static final int _carsSkipsOffset = 116;
     private static final int _carsSkipsSize = 4;
+    private static final int _carsSkipSize = 68;
 
     private static final int _arcadeTracksProgressOffset = 124;
     public static final Map<String, Byte> arcadeTracksProgress = Map.of("None", (byte) 0xFF, "Easy A", (byte) 0xFE, "Easy B", (byte) 0xFD, "Easy C", (byte) 0xFC, "Easy D", (byte) 0xFB, "Easy E", (byte) 0xFA, "Easy F", (byte) 0xF9);
@@ -80,8 +81,20 @@ public class GT3Save {
 
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
-    private static final int _carCodeSize = 8;
-    private static final int _carsSkipSize = 68;
+    private static final int _carInfoSize = 8;
+    private static final int _carPartSize = 8;
+    private static final int _carSettingSize = 4;
+    public static final String[] carInfos = new String[] {"Code", "Color", "Type"};
+    public static final String[] carParts = new String[] {"Brakes", "Brake Controller", "Chassis", "Engine", "Drivetrain & VCD", "Transmission", "Suspension", "LSD", "Front Tyres", "Rear Tyres",
+    		                                              "Unknown", "Weight Reduction", "Body & Downforce", "Polish", "Balance", "Displacement", "ECU", "N\\A Tune", "Turbo Tune", "Flywheel",
+    		                                              "Clutch", "Shaft", "Muffler", "Intercooler", "ASM", "TCS", "Wheels"};
+    public static final String[] carSettings = new String[] {"R Gear", "1 Gear", "2 Gear", "3 Gear", "4 Gear", "5 Gear", "6 Gear", "7 Gear", "Final Drive", "Auto Gear",
+    		                                                 "VCD", "Front Brakes", "Rear Brakes", "Front DF", "Rear DF", "Turbo 1", "Turbo 2", "Turbo 3", "Turbo 4", "Turbo 5",
+    		                                                 "Turbo 6", "Front Camber", "Rear Camber", "Front Height", "Rear Height", "Front Toe", "Rear Toe", "Front Springs", "Rear Springs", "Front Grip",
+    		                                                 "Rear Grip", "Front Bound 1", "Front Bound 2", "Front Rebound 1", "Front Rebound 2", "Rear Bound 1", "Rear Bound 2", "Rear Rebound 1", "Rear Rebound 2", "Front Stabilizer",
+    		                                                 "Rear Stabilizer", "Front LSD Init", "Rear LSD Init", "Front LSD Accel", "Rear LSD Accel", "Front LSD Decel", "Rear LSD Decel", "Final Drive", "TCS", "Unknown",
+    		                                                 "Power Modifier", "ASM", "Driver A/MT", "Driver ASM", "Driver TCS", "Unknown", "Fittment 1", "Fittment 2", "Fittment 3", "Travel Meter",
+    		                                                 "Oil 1", "Oil 2", "Dirtyness", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown"};
 
     private static final int _careerLicenseProgressSkip = 340;
     public static final int testsPerLicense = 8;
@@ -99,15 +112,15 @@ public class GT3Save {
 
     public GT3Save(String path) throws Exception {
         _path = path;
-        _bytes = Files.readAllBytes(Paths.get(path));
+        _data = Files.readAllBytes(Paths.get(path));
     }
 
     private int CalcCRC32() {
         int toOffset = _headerSize - 1 + GetInt(VALUE.END_OF_SAVE);
-        byte[] bytes = Arrays.copyOfRange(_bytes, _headerSize, toOffset + 1);
+        byte[] data = Arrays.copyOfRange(_data, _headerSize, toOffset + 1);
 
         CRC32 crc32 = new CRC32();
-        crc32.update(bytes);
+        crc32.update(data);
 
         return (int) crc32.getValue();
     }
@@ -180,8 +193,8 @@ public class GT3Save {
                 return 0;
         }
 
-        byte[] bytes = Arrays.copyOfRange(_bytes, offset, offset + size);
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         int val = buffer.getInt();
 
@@ -234,8 +247,8 @@ public class GT3Save {
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putInt(val);
-        byte[] bytes = buffer.array();
-        System.arraycopy(bytes, 0, _bytes, offset, size);
+        byte[] data = buffer.array();
+        System.arraycopy(data, 0, _data, offset, size);
     }
 
     public long GetLong(VALUE value) {
@@ -257,8 +270,8 @@ public class GT3Save {
                 return 0;
         }
 
-        byte[] bytes = Arrays.copyOfRange(_bytes, offset, offset + size);
-        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         long val = buffer.getLong();
 
@@ -289,14 +302,14 @@ public class GT3Save {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(val);
-        byte[] bytes = buffer.array();
-        System.arraycopy(bytes, 0, _bytes, offset, size);
+        byte[] data = buffer.array();
+        System.arraycopy(data, 0, _data, offset, size);
     }
 
     public String GetStr(VALUE value) {
         switch(value) {
             case LANGUAGE:
-                byte b = _bytes[_langOffset];
+                byte b = _data[_langOffset];
                 for(String lang : languages.keySet())
                     if(languages.get(lang) == b) return lang;
                 break;
@@ -312,7 +325,7 @@ public class GT3Save {
         switch(value) {
             case LANGUAGE:
                 if(languages.containsKey(val))
-                    _bytes[_langOffset] = languages.get(val);
+                    _data[_langOffset] = languages.get(val);
                 break;
 
             default:
@@ -320,49 +333,73 @@ public class GT3Save {
         }
     }
 
-    public String[][] GetCareerGarage() {
+    public String[][] GetCareerCars() {
         int carCount = GetInt(VALUE.CAR_COUNT);
+        String[][] cars = new String[carCount][carInfos.length + carParts.length + carSettings.length];
 
-        String[][] cars = new String[carCount][2];
-        byte[] bytes = new byte[_carSize];
+        byte[] infoData = new byte[_carInfoSize];
+        byte[] partData = new byte[_carPartSize];
+        byte[] settData = new byte[_carSettingSize];
 
-        StringBuilder carCode = new StringBuilder();
-        StringBuilder carData = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
+        int offset = _firstCarOffset;
 
         for(int i = 0; i < carCount; i++) {
-            int offset = _firstCarOffset + _carSize * i;
-            System.arraycopy(_bytes, offset, bytes, 0, _carSize);
+            for(int j = 0; j < carInfos.length; j++) {
+            	System.arraycopy(_data, offset, infoData, 0, _carInfoSize);
 
-            for(int j = 0; j < _carCodeSize; j++)
-                carCode.append(String.format("%02X", bytes[j]));
+            	for(byte b : infoData)
+                    sb.append(String.format("%02X", b));
 
-            cars[i][0] = carCode.toString();
-            carCode.setLength(0);
+            	cars[i][j] = sb.toString();
+            	sb.setLength(0);
 
-            for(int j = _carCodeSize; j < _carSize; j++)
-                carData.append(String.format("%02X", bytes[j]));
+            	offset += _carInfoSize;
+            }
 
-            cars[i][1] = carData.toString();
-            carData.setLength(0);
+            for(int j = 0; j < carParts.length; j++) {
+            	System.arraycopy(_data, offset, partData, 0, _carPartSize);
+
+            	for(byte b : partData)
+                    sb.append(String.format("%02X", b));
+
+            	cars[i][carInfos.length + j] = sb.toString();
+            	sb.setLength(0);
+
+            	offset += _carPartSize;
+            }
+
+            for(int j = 0; j < carSettings.length; j++) {
+            	System.arraycopy(_data, offset, settData, 0, _carSettingSize);
+
+            	for(byte b : settData)
+                    sb.append(String.format("%02X", b));
+
+            	cars[i][carInfos.length + carParts.length + j] = sb.toString();
+            	sb.setLength(0);
+
+            	offset += _carSettingSize;
+            }
         }
 
         return cars;
     }
 
-    public void UpdateCar(int pos, String car) {
+    public void UpdateCareerCar(int pos, String car) {
         int carCount = GetInt(VALUE.CAR_COUNT);
         if(pos < 0 || pos > carCount - 1 || car.length() != _carSize * 2) return;
 
-        byte[] bytes = new byte[_carSize];
+        byte[] data = new byte[_carSize];
 
         for(int i = 0; i < car.length(); i += 2) {
             int high = Character.digit(car.charAt(i), 16);
             int low = Character.digit(car.charAt(i + 1), 16);
-            bytes[i / 2] = (byte) ((high << 4) | low);
+            if(high < 0 || low < 0) return;
+            data[i / 2] = (byte) ((high << 4) | low);
         }
 
         int offset = _firstCarOffset + _carSize * pos;
-        System.arraycopy(bytes, 0, _bytes, offset, _carSize);
+        System.arraycopy(data, 0, _data, offset, _carSize);
    }
 
     public String[] GetCareerLicenseProgress() {
@@ -370,29 +407,30 @@ public class GT3Save {
         int carLicProgSize = careerLicenseProgress.get("None").length;
 
         String[] progress = new String[careerLicenses.length * testsPerLicense];
-        byte[] bytes = new byte[carLicProgSize];
+        byte[] data = new byte[carLicProgSize];
 
         for(int i = 0; i < progress.length; i++) {
             int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
-            System.arraycopy(_bytes, offset, bytes, 0, carLicProgSize);
+            System.arraycopy(_data, offset, data, 0, carLicProgSize);
 
             progress[i] = "None";
             for(String prog : careerLicenseProgress.keySet())
-                if(Arrays.equals(careerLicenseProgress.get(prog), bytes)) progress[i] = prog;
+                if(Arrays.equals(careerLicenseProgress.get(prog), data)) progress[i] = prog;
         }
 
         return progress;
     }
 
     public void UpdateCareerLicenseProgress(String[] progress) {
+    	if(progress.length > careerLicenses.length * testsPerLicense) return;
         int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
         int carLicProgSize = careerLicenseProgress.get("None").length;
 
         for(int i = 0; i < progress.length; i++) {
             if(!careerLicenseProgress.containsKey(progress[i])) continue;
-            byte[] bytes = careerLicenseProgress.get(progress[i]);
+            byte[] data = careerLicenseProgress.get(progress[i]);
             int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
-            System.arraycopy(bytes, 0, _bytes, offset, carLicProgSize);
+            System.arraycopy(data, 0, _data, offset, carLicProgSize);
         }
     }
 
@@ -402,7 +440,7 @@ public class GT3Save {
 
         for(int i = 0; i < progress.length; i++) {
             int offset = firstCarEvProgOffset + _careerEventProgressSkip * i;
-            byte b = _bytes[offset];
+            byte b = _data[offset];
 
             progress[i] = "None";
             for(String prog : careerEventProgress.keySet())
@@ -413,12 +451,13 @@ public class GT3Save {
     }
 
     public void UpdateCareerEventProgress(String[] progress) {
+    	if(progress.length > careerEventCount) return;
         int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
 
         for(int i = 0; i < progress.length; i++) {
             if(!careerEventProgress.containsKey(progress[i])) continue;
             int offset = firstCarEvProgOffset + _careerEventProgressSkip * i;
-            _bytes[offset] = careerEventProgress.get(progress[i]);
+            _data[offset] = careerEventProgress.get(progress[i]);
         }
     }
 
@@ -426,65 +465,66 @@ public class GT3Save {
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
         String[] progress = new String[arcadeTracks.length + 2];
-        byte[] bytes = new byte[arcadeEventProgress.get("None").length];
+        byte[] data = new byte[arcadeEventProgress.get("None").length];
 
         for(int i = 0; i < progress.length - 2; i++) {
-            for(int j = 0; j < bytes.length; j++) {
+            for(int j = 0; j < data.length; j++) {
                 int offset = firstArcEvEasyProgOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
-                bytes[j] = _bytes[offset];
+                data[j] = _data[offset];
             }
 
             progress[i] = "None";
             for(String prog : arcadeEventProgress.keySet())
-                if(Arrays.equals(arcadeEventProgress.get(prog), bytes)) progress[i] = prog;
+                if(Arrays.equals(arcadeEventProgress.get(prog), data)) progress[i] = prog;
         }
 
-        byte b = _bytes[_arcadeTracksProgressOffset];
+        byte b = _data[_arcadeTracksProgressOffset];
 
         progress[progress.length - 2] = "None";
         for(String prog : arcadeTracksProgress.keySet())
             if(arcadeTracksProgress.get(prog) == b) progress[progress.length - 2] = prog;
 
-        bytes = new byte[arcadeCarsProgress.get("None").length];
-        for(int i = 0; i < bytes.length; i++) {
+        data = new byte[arcadeCarsProgress.get("None").length];
+        for(int i = 0; i < data.length; i++) {
             int offset = _arcadeCarsProgressOffset + _arcadeCarsProgressSkip * i;
-            bytes[i] = _bytes[offset];
+            data[i] = _data[offset];
         }
 
         progress[progress.length - 1] = "None";
         for(String prog : arcadeCarsProgress.keySet())
-            if(Arrays.equals(arcadeCarsProgress.get(prog), bytes)) progress[progress.length - 1] = prog;
+            if(Arrays.equals(arcadeCarsProgress.get(prog), data)) progress[progress.length - 1] = prog;
 
         return progress;
     }
 
     public void UpdateArcadeProgress(String[] progress) {
+    	if(progress.length > arcadeTracks.length + 2) return;
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
         for(int i = 0; i < progress.length - 2; i++) {
             if(!arcadeEventProgress.containsKey(progress[i])) continue;
-            byte[] bytes = arcadeEventProgress.get(progress[i]);
+            byte[] data = arcadeEventProgress.get(progress[i]);
 
-            for(int j = 0; j < bytes.length; j++) {
+            for(int j = 0; j < data.length; j++) {
                 int offset = firstArcEvEasyProgOffset + _arcadeEventSkip * i + _difficultArcadeEventSkip * j;
-                _bytes[offset] = bytes[j];
+                _data[offset] = data[j];
             }
         }
 
         if(arcadeTracksProgress.containsKey(progress[progress.length - 2]))
-            _bytes[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
+            _data[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
 
         if(!arcadeCarsProgress.containsKey(progress[progress.length - 1])) return;
 
-        byte[] bytes = arcadeCarsProgress.get(progress[progress.length - 1]);
-        for(int i = 0; i < bytes.length; i++) {
+        byte[] data = arcadeCarsProgress.get(progress[progress.length - 1]);
+        for(int i = 0; i < data.length; i++) {
             int offset = _arcadeCarsProgressOffset + _arcadeCarsProgressSkip * i;
-            _bytes[offset] = bytes[i];
+            _data[offset] = data[i];
         }
     }
 
     public void Update() throws Exception {
         UpdateCRC32();
-        Files.write(Paths.get(_path), _bytes);
+        Files.write(Paths.get(_path), _data);
     }
 }
