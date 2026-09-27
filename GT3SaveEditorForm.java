@@ -11,6 +11,9 @@ public class GT3SaveEditorForm extends JFrame {
     private ArrayList<JTextField> _texts = new ArrayList<JTextField>();
     private JComboBox<String> _langCombo;
     private JTable _carGarTable;
+    private JMenuItem _copyCar;
+    private JMenuItem _pasteCar;
+    private String[] _carData;
     private ArrayList<JComboBox<String>> _carLicProgCombos = new ArrayList<JComboBox<String>>();
     private ArrayList<JComboBox<String>> _carEvProgCombos = new ArrayList<JComboBox<String>>();
     private ArrayList<JComboBox<String>> _arcProgCombos = new ArrayList<JComboBox<String>>();
@@ -147,8 +150,15 @@ public class GT3SaveEditorForm extends JFrame {
     	columns.addAll(Arrays.asList(GT3Save.carParts));
     	columns.addAll(Arrays.asList(GT3Save.carSettings));
 
+        JPopupMenu popupMenu = new JPopupMenu();
+        _copyCar = new JMenuItem("Copy");
+        _pasteCar = new JMenuItem("Paste");
+        popupMenu.add(_copyCar);
+        popupMenu.add(_pasteCar);
+
         _carGarTable = new JTable(new DefaultTableModel(columns.toArray(), 0));
         _carGarTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        _carGarTable.setComponentPopupMenu(popupMenu);
 
         JScrollPane scrollPane = new JScrollPane(_carGarTable);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -336,6 +346,8 @@ public class GT3SaveEditorForm extends JFrame {
         _allGoldCarLicProg.addActionListener((ActionEvent e) -> AllGoldCarLicProg());
         _allGoldCarEvProg.addActionListener((ActionEvent e) -> AllGoldCarEvProg());
         _allHardArcEvProg.addActionListener((ActionEvent e) -> AllHardArcEvProg());
+        _copyCar.addActionListener((ActionEvent e) -> CopyCar());
+        _pasteCar.addActionListener((ActionEvent e) -> PasteCar());
     }
 
     private void OpenSave() {
@@ -402,6 +414,8 @@ public class GT3SaveEditorForm extends JFrame {
             model.setRowCount(0);
             for(Object[] car : _save.GetCareerCars())
                 model.addRow(car);
+            _carData = new String[_carGarTable.getColumnCount()];
+            _pasteCar.setEnabled(false);
 
             String[] carLicProg = _save.GetCareerLicenseProgress();
             for(int i = 0; i < carLicProg.length; i++) {
@@ -515,6 +529,25 @@ public class GT3SaveEditorForm extends JFrame {
             combo.setSelectedItem("Hard");
     }
 
+    private void CopyCar() {
+        int row = _carGarTable.getSelectedRow();
+        if(row < 0 || _carData == null) return;
+
+        for(int i = 0; i < _carData.length; i++)
+            _carData[i] = (String) _carGarTable.getValueAt(row, i);
+
+        _pasteCar.setEnabled(true);
+    }
+
+    private void PasteCar() {
+        int row = _carGarTable.getSelectedRow();
+        if(row < 0 || _carData == null) return;
+
+        DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
+        for(int i = 0; i < _carData.length; i++)
+            model.setValueAt(_carData[i], row, i);
+    }
+
     private void ClearData() {
         _update.setEnabled(false);
         _close.setEnabled(false);
@@ -528,6 +561,7 @@ public class GT3SaveEditorForm extends JFrame {
         _langCombo.setEnabled(false);
 
         ((DefaultTableModel) _carGarTable.getModel()).setRowCount(0);
+        _carData = null;
 
         for(JComboBox<String> combo : _carLicProgCombos) {
             combo.setSelectedIndex(-1);
