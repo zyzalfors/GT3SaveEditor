@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.zip.*;
 
 public class GT3Save {
-    private final byte[] _data;
+    private byte[] _data;
     private final String _path;
 
     private static final int _headerSize = 64;
@@ -81,20 +81,21 @@ public class GT3Save {
 
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
+    public static final int maxCarCount = 200;
     private static final int _carInfoSize = 8;
     private static final int _carPartSize = 8;
     private static final int _carSettingSize = 4;
     public static final String[] carInfos = new String[] {"Code", "Color", "Type"};
     public static final String[] carParts = new String[] {"Brakes", "Brake Controller", "Chassis", "Engine", "Drivetrain & VCD", "Transmission", "Suspension", "LSD", "Front Tyres", "Rear Tyres",
-    		                                              "Unknown", "Weight Reduction", "Body & Downforce", "Polish", "Balance", "Displacement", "ECU", "N\\A Tune", "Turbo Tune", "Flywheel",
-    		                                              "Clutch", "Shaft", "Muffler", "Intercooler", "ASM", "TCS", "Wheels"};
+                                                          "Unknown", "Weight Reduction", "Body & Downforce", "Polish", "Balance", "Displacement", "ECU", "N\\A Tune", "Turbo Tune", "Flywheel",
+                                                          "Clutch", "Shaft", "Muffler", "Intercooler", "ASM", "TCS", "Wheels"};
     public static final String[] carSettings = new String[] {"R Gear", "1 Gear", "2 Gear", "3 Gear", "4 Gear", "5 Gear", "6 Gear", "7 Gear", "Final Drive", "Auto Gear",
-    		                                                 "VCD", "Front Brakes", "Rear Brakes", "Front DF", "Rear DF", "Turbo 1", "Turbo 2", "Turbo 3", "Turbo 4", "Turbo 5",
-    		                                                 "Turbo 6", "Front Camber", "Rear Camber", "Front Height", "Rear Height", "Front Toe", "Rear Toe", "Front Springs", "Rear Springs", "Front Grip",
-    		                                                 "Rear Grip", "Front Bound 1", "Front Bound 2", "Front Rebound 1", "Front Rebound 2", "Rear Bound 1", "Rear Bound 2", "Rear Rebound 1", "Rear Rebound 2", "Front Stabilizer",
-    		                                                 "Rear Stabilizer", "Front LSD Init", "Rear LSD Init", "Front LSD Accel", "Rear LSD Accel", "Front LSD Decel", "Rear LSD Decel", "Final Drive", "TCS", "Unknown",
-    		                                                 "Power Modifier", "ASM", "Driver A/MT", "Driver ASM", "Driver TCS", "Unknown", "Fittment 1", "Fittment 2", "Fittment 3", "Travel Meter",
-    		                                                 "Oil 1", "Oil 2", "Dirtyness", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown"};
+                                                             "VCD", "Front Brakes", "Rear Brakes", "Front DF", "Rear DF", "Turbo 1", "Turbo 2", "Turbo 3", "Turbo 4", "Turbo 5",
+                                                             "Turbo 6", "Front Camber", "Rear Camber", "Front Height", "Rear Height", "Front Toe", "Rear Toe", "Front Springs", "Rear Springs", "Front Grip",
+                                                             "Rear Grip", "Front Bound 1", "Front Bound 2", "Front Rebound 1", "Front Rebound 2", "Rear Bound 1", "Rear Bound 2", "Rear Rebound 1", "Rear Rebound 2", "Front Stabilizer",
+                                                             "Rear Stabilizer", "Front LSD Init", "Rear LSD Init", "Front LSD Accel", "Rear LSD Accel", "Front LSD Decel", "Rear LSD Decel", "Final Drive", "TCS", "Unknown",
+                                                             "Power Modifier", "ASM", "Driver A/MT", "Driver ASM", "Driver TCS", "Unknown", "Fittment 1", "Fittment 2", "Fittment 3", "Travel Meter",
+                                                             "Oil 1", "Oil 2", "Dirtyness", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown"};
 
     private static final int _careerLicenseProgressSkip = 340;
     public static final int testsPerLicense = 8;
@@ -190,7 +191,7 @@ public class GT3Save {
                 break;
 
             default:
-                return 0;
+                throw new IllegalArgumentException("Invalid value");
         }
 
         byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
@@ -207,6 +208,12 @@ public class GT3Save {
         boolean conv = true;
 
         switch(value) {
+            case END_OF_SAVE:
+                offset = _endOfSaveOffset;
+                size = _endOfSaveSize;
+                conv = false;
+                break;
+
             case CRC32:
                 offset = _crc32Offset;
                 size = _crc32Size;
@@ -228,6 +235,11 @@ public class GT3Save {
                 size = _winsSize;
                 break;
 
+            case CAR_COUNT:
+                offset = _carCountOffset;
+                size = _carCountSize;
+                break;
+
             case TROPHIES:
                 offset = _trophiesOffset;
                 size = _trophiesSize;
@@ -239,7 +251,7 @@ public class GT3Save {
                 break;
 
             default:
-                return;
+                throw new IllegalArgumentException("Invalid value");
         }
 
         if(conv) val = -1 * (val + 1);
@@ -267,7 +279,7 @@ public class GT3Save {
                 break;
 
             default:
-                return 0;
+                throw new IllegalArgumentException("Invalid value");
         }
 
         byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
@@ -294,7 +306,7 @@ public class GT3Save {
                 break;
 
             default:
-                return;
+                throw new IllegalArgumentException("Invalid value");
         }
 
         val = -1 * (val + 1);
@@ -315,7 +327,7 @@ public class GT3Save {
                 break;
 
             default:
-                break;
+                throw new IllegalArgumentException("Invalid value");
         }
 
         return "";
@@ -326,80 +338,132 @@ public class GT3Save {
             case LANGUAGE:
                 if(languages.containsKey(val))
                     _data[_langOffset] = languages.get(val);
+                else
+                    throw new IllegalArgumentException(String.format("Invalid language: %s", val));
                 break;
 
             default:
-                break;
+                throw new IllegalArgumentException("Invalid value");
         }
     }
 
-    public String[][] GetCareerCars() {
-        int carCount = GetInt(VALUE.CAR_COUNT);
-        String[][] cars = new String[carCount][carInfos.length + carParts.length + carSettings.length];
-
+    private String[][] GetStrCars(byte[] data, int size, int start) {
+        String[][] cars = new String[size][carInfos.length + carParts.length + carSettings.length];
         byte[] infoData = new byte[_carInfoSize];
         byte[] partData = new byte[_carPartSize];
         byte[] settData = new byte[_carSettingSize];
 
         StringBuilder sb = new StringBuilder();
-        int offset = _firstCarOffset;
+        int offset = start;
 
-        for(int i = 0; i < carCount; i++) {
+        for(int i = 0; i < size; i++) {
             for(int j = 0; j < carInfos.length; j++) {
-            	System.arraycopy(_data, offset, infoData, 0, _carInfoSize);
+                System.arraycopy(data, offset, infoData, 0, _carInfoSize);
 
-            	for(byte b : infoData)
+                for(byte b : infoData)
                     sb.append(String.format("%02X", b));
 
-            	cars[i][j] = sb.toString();
-            	sb.setLength(0);
+                cars[i][j] = sb.toString();
+                sb.setLength(0);
 
-            	offset += _carInfoSize;
+                offset += _carInfoSize;
             }
 
             for(int j = 0; j < carParts.length; j++) {
-            	System.arraycopy(_data, offset, partData, 0, _carPartSize);
+                System.arraycopy(data, offset, partData, 0, _carPartSize);
 
-            	for(byte b : partData)
+                for(byte b : partData)
                     sb.append(String.format("%02X", b));
 
-            	cars[i][carInfos.length + j] = sb.toString();
-            	sb.setLength(0);
+                cars[i][carInfos.length + j] = sb.toString();
+                sb.setLength(0);
 
-            	offset += _carPartSize;
+                offset += _carPartSize;
             }
 
             for(int j = 0; j < carSettings.length; j++) {
-            	System.arraycopy(_data, offset, settData, 0, _carSettingSize);
+                System.arraycopy(data, offset, settData, 0, _carSettingSize);
 
-            	for(byte b : settData)
+                for(byte b : settData)
                     sb.append(String.format("%02X", b));
 
-            	cars[i][carInfos.length + carParts.length + j] = sb.toString();
-            	sb.setLength(0);
+                cars[i][carInfos.length + carParts.length + j] = sb.toString();
+                sb.setLength(0);
 
-            	offset += _carSettingSize;
+                offset += _carSettingSize;
             }
         }
 
         return cars;
     }
 
-    public void UpdateCareerCar(int pos, String car) {
-        int carCount = GetInt(VALUE.CAR_COUNT);
-        if(pos < 0 || pos > carCount - 1 || car.length() != _carSize * 2) return;
+    private void WriteBinCars(byte[] data, int size, int start, String[][] cars) {
+        byte[] carData = new byte[_carSize];
+        int offset = start;
 
-        byte[] data = new byte[_carSize];
+        for(int i = 0; i < size; i++) {
+            String car = String.join("", cars[i]);
+            if(car.length() != _carSize * 2)
+                throw new IllegalArgumentException(String.format("Invalid car %d data", i));
 
-        for(int i = 0; i < car.length(); i += 2) {
-            int high = Character.digit(car.charAt(i), 16);
-            int low = Character.digit(car.charAt(i + 1), 16);
-            if(high < 0 || low < 0) return;
-            data[i / 2] = (byte) ((high << 4) | low);
+            for(int j = 0; j < car.length(); j += 2) {
+                int high = Character.digit(car.charAt(j), 16);
+                int low = Character.digit(car.charAt(j + 1), 16);
+
+                if(high < 0)
+                    throw new IllegalArgumentException(String.format("Invalid car %d data at %d", i, j));
+                if(low < 0)
+                    throw new IllegalArgumentException(String.format("Invalid car %d data at %d", i, j + 1));
+
+                carData[j / 2] = (byte) ((high << 4) | low);
+            }
+
+            System.arraycopy(carData, 0, data, offset, _carSize);
+            offset += _carSize;
         }
+    }
 
-        int offset = _firstCarOffset + _carSize * pos;
-        System.arraycopy(data, 0, _data, offset, _carSize);
+    public void ExportCareerCars(String[][] cars, String path) throws Exception {
+        if(cars.length == 0)
+            throw new IllegalArgumentException(String.format("Invalid car data length: %d", cars.length));
+
+        byte[] data = new byte[cars.length * _carSize];
+        WriteBinCars(data, cars.length, 0, cars);
+        Files.write(Paths.get(path), data);
+   }
+
+    public String[][] ImportCareerCars(String path) throws Exception {
+         byte[] carData = Files.readAllBytes(Paths.get(path));
+         if(carData.length == 0 || carData.length % _carSize != 0)
+             throw new IllegalArgumentException(String.format("Invalid file size: %d", carData.length));
+
+         return GetStrCars(carData, carData.length / _carSize, 0);
+    }
+
+    public String[][] GetCareerCars() {
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        return GetStrCars(_data, carCount, _firstCarOffset);
+    }
+
+    public void UpdateCareerCars(String[][] cars) {
+        int endOfSave = GetInt(VALUE.END_OF_SAVE);
+        int carCount = GetInt(VALUE.CAR_COUNT);
+        int newCarCount = Math.min(cars.length, maxCarCount);
+        int newEndOfSave = endOfSave + (newCarCount - carCount) * _carSize;
+
+        int firstPartSize = _firstCarOffset;
+        int newCarPartSize = newCarCount * _carSize;
+        int carsEnd = _firstCarOffset + carCount * _carSize;
+        int lastPartSize = _data.length - carsEnd;
+
+        byte[] newData = new byte[firstPartSize + newCarPartSize + lastPartSize];
+        System.arraycopy(_data, 0, newData, 0, firstPartSize);
+        WriteBinCars(newData, newCarCount, _firstCarOffset, cars);
+        System.arraycopy(_data, carsEnd, newData, firstPartSize + newCarPartSize, lastPartSize);
+        _data = newData;
+
+        UpdateInt(VALUE.CAR_COUNT, newCarCount);
+        UpdateInt(VALUE.END_OF_SAVE, newEndOfSave);
    }
 
     public String[] GetCareerLicenseProgress() {
@@ -422,7 +486,9 @@ public class GT3Save {
     }
 
     public void UpdateCareerLicenseProgress(String[] progress) {
-    	if(progress.length > careerLicenses.length * testsPerLicense) return;
+        if(progress.length > careerLicenses.length * testsPerLicense)
+            throw new IllegalArgumentException(String.format("Invalid career licence progress length: %d", progress.length));
+
         int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
         int carLicProgSize = careerLicenseProgress.get("None").length;
 
@@ -451,7 +517,9 @@ public class GT3Save {
     }
 
     public void UpdateCareerEventProgress(String[] progress) {
-    	if(progress.length > careerEventCount) return;
+        if(progress.length > careerEventCount)
+            throw new IllegalArgumentException(String.format("Invalid career event progress length: %d", progress.length));
+
         int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
 
         for(int i = 0; i < progress.length; i++) {
@@ -498,7 +566,9 @@ public class GT3Save {
     }
 
     public void UpdateArcadeProgress(String[] progress) {
-    	if(progress.length > arcadeTracks.length + 2) return;
+        if(progress.length > arcadeTracks.length + 2)
+            throw new IllegalArgumentException(String.format("Invalid arcade progress length: %d", progress.length));
+
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
         for(int i = 0; i < progress.length - 2; i++) {
@@ -511,12 +581,15 @@ public class GT3Save {
             }
         }
 
-        if(arcadeTracksProgress.containsKey(progress[progress.length - 2]))
-            _data[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
+        if(!arcadeTracksProgress.containsKey(progress[progress.length - 2]))
+            throw new IllegalArgumentException(String.format("Invalid arcade progress: %s", progress[progress.length - 2]));
 
-        if(!arcadeCarsProgress.containsKey(progress[progress.length - 1])) return;
+        if(!arcadeCarsProgress.containsKey(progress[progress.length - 1]))
+            throw new IllegalArgumentException(String.format("Invalid arcade progress: %s", progress[progress.length - 1]));
 
+        _data[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
         byte[] data = arcadeCarsProgress.get(progress[progress.length - 1]);
+
         for(int i = 0; i < data.length; i++) {
             int offset = _arcadeCarsProgressOffset + _arcadeCarsProgressSkip * i;
             _data[offset] = data[i];

@@ -10,9 +10,12 @@ public class GT3SaveEditorForm extends JFrame {
     private static final String _title = "GT3 Save Editor";
     private ArrayList<JTextField> _texts = new ArrayList<JTextField>();
     private JComboBox<String> _langCombo;
-    private JTable _carGarTable;
-    private JMenuItem _copyCar;
-    private JMenuItem _pasteCar;
+    private JTable _carCarsTable;
+    private JMenuItem _copyCarCar;
+    private JMenuItem _pasteCarCar;
+    private JMenuItem _deleteCarCars;
+    private JMenuItem _exportCarCars;
+    private JMenuItem _importCarCars;
     private String[] _carData;
     private ArrayList<JComboBox<String>> _carLicProgCombos = new ArrayList<JComboBox<String>>();
     private ArrayList<JComboBox<String>> _carEvProgCombos = new ArrayList<JComboBox<String>>();
@@ -145,24 +148,42 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private JPanel InitCareerCarsPanel() {
-    	ArrayList<String> columns = new ArrayList<String>();
-    	columns.addAll(Arrays.asList(GT3Save.carInfos));
-    	columns.addAll(Arrays.asList(GT3Save.carParts));
-    	columns.addAll(Arrays.asList(GT3Save.carSettings));
+        ArrayList<String> columns = new ArrayList<String>();
+        columns.addAll(Arrays.asList(GT3Save.carInfos));
+        columns.addAll(Arrays.asList(GT3Save.carParts));
+        columns.addAll(Arrays.asList(GT3Save.carSettings));
 
         JPopupMenu popupMenu = new JPopupMenu();
-        _copyCar = new JMenuItem("Copy");
-        _pasteCar = new JMenuItem("Paste");
-        popupMenu.add(_copyCar);
-        popupMenu.add(_pasteCar);
 
-        _carGarTable = new JTable(new DefaultTableModel(columns.toArray(), 0));
-        _carGarTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        _carGarTable.setComponentPopupMenu(popupMenu);
+        _copyCarCar = new JMenuItem("Copy car");
+        _copyCarCar.setEnabled(false);
 
-        JScrollPane scrollPane = new JScrollPane(_carGarTable);
+        _pasteCarCar = new JMenuItem("Paste car");
+        _pasteCarCar.setEnabled(false);
+
+        _deleteCarCars = new JMenuItem("Delete cars");
+        _deleteCarCars.setEnabled(false);
+
+        _exportCarCars = new JMenuItem("Export cars");
+        _exportCarCars.setEnabled(false);
+
+        _importCarCars = new JMenuItem("Import cars");
+        _importCarCars.setEnabled(false);
+
+        popupMenu.add(_copyCarCar);
+        popupMenu.add(_pasteCarCar);
+        popupMenu.add(_deleteCarCars);
+        popupMenu.add(_exportCarCars);
+        popupMenu.add(_importCarCars);
+
+        _carCarsTable = new JTable(new DefaultTableModel(columns.toArray(), 0));
+        _carCarsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        _carCarsTable.setComponentPopupMenu(popupMenu);
+
+        JScrollPane scrollPane = new JScrollPane(_carCarsTable);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setComponentPopupMenu(popupMenu);
 
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -343,17 +364,21 @@ public class GT3SaveEditorForm extends JFrame {
         _open.addActionListener((ActionEvent e) -> OpenSave());
         _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
-        _allGoldCarLicProg.addActionListener((ActionEvent e) -> AllGoldCarLicProg());
-        _allGoldCarEvProg.addActionListener((ActionEvent e) -> AllGoldCarEvProg());
-        _allHardArcEvProg.addActionListener((ActionEvent e) -> AllHardArcEvProg());
-        _copyCar.addActionListener((ActionEvent e) -> CopyCar());
-        _pasteCar.addActionListener((ActionEvent e) -> PasteCar());
+        _allGoldCarLicProg.addActionListener((ActionEvent e) -> AllGoldCareerLicenseProgress());
+        _allGoldCarEvProg.addActionListener((ActionEvent e) -> AllGoldCareerEventProgress());
+        _allHardArcEvProg.addActionListener((ActionEvent e) -> AllHardArcadeEventProgress());
+        _copyCarCar.addActionListener((ActionEvent e) -> CopyCareerCar());
+        _pasteCarCar.addActionListener((ActionEvent e) -> PasteCareerCar());
+        _deleteCarCars.addActionListener((ActionEvent e) -> DeleteCareerCar());
+        _exportCarCars.addActionListener((ActionEvent e) -> ExportCareerCars());
+        _importCarCars.addActionListener((ActionEvent e) -> ImportCareerCars());
     }
 
     private void OpenSave() {
         JFileChooser chooser = new JFileChooser();
-        if(chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
-            PrintSave(chooser.getSelectedFile().getAbsolutePath());
+        chooser.setDialogTitle("Open save");
+        if(chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return;
+        PrintSave(chooser.getSelectedFile().getAbsolutePath());
     }
 
     private void PrintSave(String path) {
@@ -410,12 +435,18 @@ public class GT3SaveEditorForm extends JFrame {
             _langCombo.setEnabled(true);
             _langCombo.setSelectedItem(lang);
 
-            DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
+            DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
             model.setRowCount(0);
             for(Object[] car : _save.GetCareerCars())
                 model.addRow(car);
-            _carData = new String[_carGarTable.getColumnCount()];
-            _pasteCar.setEnabled(false);
+
+            int rowCount = _carCarsTable.getRowCount();
+            _copyCarCar.setEnabled(rowCount > 0);
+            _pasteCarCar.setEnabled(false);
+            _deleteCarCars.setEnabled(rowCount > 0);
+            _exportCarCars.setEnabled(rowCount > 0);
+            _importCarCars.setEnabled(true);
+            _carData = new String[_carCarsTable.getColumnCount()];
 
             String[] carLicProg = _save.GetCareerLicenseProgress();
             for(int i = 0; i < carLicProg.length; i++) {
@@ -442,8 +473,8 @@ public class GT3SaveEditorForm extends JFrame {
             _close.setEnabled(true);
         }
         catch(Exception e) {
-            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             ClearData();
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -475,14 +506,8 @@ public class GT3SaveEditorForm extends JFrame {
             String lang = (String) _langCombo.getSelectedItem();
             _save.UpdateStr(VALUE.LANGUAGE, lang);
 
-            DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
-            StringBuilder sb = new StringBuilder();
-            for(int i = 0; i < model.getRowCount(); i++) {
-            	for(int j = 0; j < model.getColumnCount(); j++)
-            		sb.append(model.getValueAt(i, j));
-                _save.UpdateCareerCar(i, sb.toString());
-                sb.setLength(0);
-            }
+            String[][] cars = GetCareerCars(null);
+            _save.UpdateCareerCars(cars);
 
             String[] carLicProg = new String[_carLicProgCombos.size()];
             for(int i = 0; i < carLicProg.length; i++)
@@ -501,51 +526,127 @@ public class GT3SaveEditorForm extends JFrame {
 
             _save.Update();
 
+            int crc32 = _save.GetInt(VALUE.CRC32);
+            _texts.get(1).setText(String.format("%08X", crc32));
+
             JOptionPane.showMessageDialog(this, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
-            UpdateCRC32();
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
-    private void UpdateCRC32() {
-        int crc32 = _save.GetInt(VALUE.CRC32);
-        _texts.get(1).setText(String.format("%08X", crc32));
-    }
-
-    private void AllGoldCarLicProg() {
+    private void AllGoldCareerLicenseProgress() {
         for(JComboBox<String> combo : _carLicProgCombos)
             combo.setSelectedItem("Gold");
     }
 
-    private void AllGoldCarEvProg() {
+    private void AllGoldCareerEventProgress() {
         for(JComboBox<String> combo : _carEvProgCombos)
             combo.setSelectedItem("Gold");
     }
 
-    private void AllHardArcEvProg() {
+    private void AllHardArcadeEventProgress() {
         for(JComboBox<String> combo : _arcProgCombos)
             combo.setSelectedItem("Hard");
     }
 
-    private void CopyCar() {
-        int row = _carGarTable.getSelectedRow();
-        if(row < 0 || _carData == null) return;
+    private String[][] GetCareerCars(ArrayList<Integer> rows) {
+        DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
+        ArrayList<ArrayList<String>> carsList = new ArrayList<ArrayList<String>>();
 
-        for(int i = 0; i < _carData.length; i++)
-            _carData[i] = (String) _carGarTable.getValueAt(row, i);
+        for(int i = 0; i < model.getRowCount(); i++) {
+            if(rows != null && rows.indexOf(i) == -1) continue;
+            ArrayList<String> carData = new ArrayList<String>();
 
-        _pasteCar.setEnabled(true);
+            for(int j = 0; j < model.getColumnCount(); j++)
+                carData.add((String) model.getValueAt(i, j));
+
+            carsList.add(carData);
+        }
+
+        String[][] cars = new String[carsList.size()][];
+        for(int i = 0; i < carsList.size(); i++)
+            cars[i] = carsList.get(i).toArray(new String[0]);
+
+        return cars;
     }
 
-    private void PasteCar() {
-        int row = _carGarTable.getSelectedRow();
+    private void CopyCareerCar() {
+        int row = _carCarsTable.getSelectedRow();
         if(row < 0 || _carData == null) return;
 
-        DefaultTableModel model = (DefaultTableModel) _carGarTable.getModel();
-        for(int i = 0; i < _carData.length; i++)
+        for(int i = 0; i < _carCarsTable.getColumnCount(); i++)
+            _carData[i] = (String) _carCarsTable.getValueAt(row, i);
+
+        _pasteCarCar.setEnabled(true);
+    }
+
+    private void PasteCareerCar() {
+        int row = _carCarsTable.getSelectedRow();
+        if(row < 0 || _carData == null) return;
+
+        DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
+        for(int i = 0; i < _carCarsTable.getColumnCount(); i++)
             model.setValueAt(_carData[i], row, i);
+    }
+
+    private void DeleteCareerCar() {
+        DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
+        int[] rows = _carCarsTable.getSelectedRows();
+
+        for(int i = rows.length - 1; i >= 0; i--)
+            model.removeRow(_carCarsTable.convertRowIndexToModel(rows[i]));
+
+        _texts.get(7).setText(String.valueOf(_carCarsTable.getRowCount()));
+     }
+
+    private void ExportCareerCars() {
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Export cars");
+            if(chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) return;
+
+            ArrayList<Integer> rows = new ArrayList<Integer>();
+            for(int row : _carCarsTable.getSelectedRows())
+                rows.add(row);
+
+            String[][] cars = GetCareerCars(rows);
+            _save.ExportCareerCars(cars, chooser.getSelectedFile().getAbsolutePath());
+            JOptionPane.showMessageDialog(this, String.format("%s car(s) exported", cars.length), "Info", JOptionPane.INFORMATION_MESSAGE);
+        }
+        catch(Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void ImportCareerCars() {
+        try {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Import cars");
+            if(chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return;
+
+            String[][] cars = _save.ImportCareerCars(chooser.getSelectedFile().getAbsolutePath());
+            DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
+            int numCars = 0;
+
+            for(Object[] car : cars) {
+                if(_carCarsTable.getRowCount() == GT3Save.maxCarCount) break;
+                model.addRow(car);
+                numCars++;
+            }
+
+            int rowCount = _carCarsTable.getRowCount();
+            _copyCarCar.setEnabled(rowCount > 0);
+            _deleteCarCars.setEnabled(rowCount > 0);
+            _exportCarCars.setEnabled(rowCount > 0);
+
+            _texts.get(7).setText(String.valueOf(rowCount));
+            JOptionPane.showMessageDialog(this, String.format("%d car(s) imported", numCars), "Info", JOptionPane.INFORMATION_MESSAGE);
+        }
+        catch(Exception e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void ClearData() {
@@ -560,7 +661,12 @@ public class GT3SaveEditorForm extends JFrame {
         _langCombo.setSelectedIndex(-1);
         _langCombo.setEnabled(false);
 
-        ((DefaultTableModel) _carGarTable.getModel()).setRowCount(0);
+        ((DefaultTableModel) _carCarsTable.getModel()).setRowCount(0);
+        _copyCarCar.setEnabled(false);
+        _pasteCarCar.setEnabled(false);
+        _deleteCarCars.setEnabled(false);
+        _exportCarCars.setEnabled(false);
+        _importCarCars.setEnabled(false);
         _carData = null;
 
         for(JComboBox<String> combo : _carLicProgCombos) {
