@@ -119,7 +119,7 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private JPanel InitCareerStatusPanel() {
-        String[] labels = new String[] {"Days", "Races", "Wins", "Money", "Prize", "Car count", "Trophies", "Bonus cars"};
+        String[] labels = new String[] {"Days", "Races", "Wins", "Money", "Prize", "Mileage", "Car count", "Trophies", "Bonus cars"};
         JPanel panel = new JPanel(null);
 
         for(int i = 0; i < labels.length; i++) {
@@ -418,18 +418,22 @@ public class GT3SaveEditorForm extends JFrame {
             _texts.get(6).setEnabled(true);
             _texts.get(6).setText(String.valueOf(prize));
 
-            int carCount = _save.GetInt(VALUE.CAR_COUNT);
+            double mileage = _save.GetDouble(VALUE.MILEAGE);
             _texts.get(7).setEnabled(true);
-            _texts.get(7).setEditable(false);
-            _texts.get(7).setText(String.valueOf(carCount));
+            _texts.get(7).setText(String.format(Locale.US, "%.1f", mileage));
+
+            int carCount = _save.GetInt(VALUE.CAR_COUNT);
+            _texts.get(8).setEnabled(true);
+            _texts.get(8).setEditable(false);
+            _texts.get(8).setText(String.valueOf(carCount));
 
             int trophies = _save.GetInt(VALUE.TROPHIES);
-            _texts.get(8).setEnabled(true);
-            _texts.get(8).setText(String.valueOf(trophies));
+            _texts.get(9).setEnabled(true);
+            _texts.get(9).setText(String.valueOf(trophies));
 
             int bonusCars = _save.GetInt(VALUE.BONUS_CARS);
-            _texts.get(9).setEnabled(true);
-            _texts.get(9).setText(String.valueOf(bonusCars));
+            _texts.get(10).setEnabled(true);
+            _texts.get(10).setText(String.valueOf(bonusCars));
 
             String lang = _save.GetStr(VALUE.LANGUAGE);
             _langCombo.setEnabled(true);
@@ -497,10 +501,13 @@ public class GT3SaveEditorForm extends JFrame {
             long prize = Long.valueOf(_texts.get(6).getText());
             _save.UpdateLong(VALUE.PRIZE, prize);
 
-            int trophies = Integer.valueOf(_texts.get(8).getText());
+            double mileage = Double.valueOf(_texts.get(7).getText());
+            _save.UpdateDouble(VALUE.MILEAGE, mileage);
+
+            int trophies = Integer.valueOf(_texts.get(9).getText());
             _save.UpdateInt(VALUE.TROPHIES, trophies);
 
-            int bonusCars = Integer.valueOf(_texts.get(9).getText());
+            int bonusCars = Integer.valueOf(_texts.get(10).getText());
             _save.UpdateInt(VALUE.BONUS_CARS, bonusCars);
 
             String lang = (String) _langCombo.getSelectedItem();

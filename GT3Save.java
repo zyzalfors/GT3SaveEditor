@@ -31,6 +31,10 @@ public class GT3Save {
     private static final int _prizeOffset = 88;
     private static final int _prizeSize = 8;
 
+    private static final int _mileageOffset = 96;
+    private static final int _mileageSize = 4;
+    private static final double _mileageConvFactor = 500.0;
+
     private static final int _carCountOffset = 112;
     private static final int _carCountSize = 4;
 
@@ -109,7 +113,7 @@ public class GT3Save {
     public static final int careerEventCount = 364;
     public static final Map<String, Byte> careerEventProgress = Map.of("None", (byte) 0xF7, "Bronze", (byte) 0xFD, "Silver", (byte) 0xFE, "Gold", (byte) 0xFF);
 
-    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, MILEAGE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -314,6 +318,51 @@ public class GT3Save {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.putLong(val);
+        byte[] data = buffer.array();
+        System.arraycopy(data, 0, _data, offset, size);
+    }
+
+    public double GetDouble(VALUE value) {
+        int offset = 0;
+        int size = 0;
+
+        switch(value) {
+            case MILEAGE:
+                offset = _mileageOffset;
+                size = _mileageSize;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid value");
+        }
+
+        byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        double val = -1 * ((double) buffer.getInt() / _mileageConvFactor);
+
+        return val;
+    }
+
+    public void UpdateDouble(VALUE value, double val) {
+        int offset = 0;
+        int size = 0;
+
+        switch(value) {
+            case MILEAGE:
+                offset = _mileageOffset;
+                size = _mileageSize;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid value");
+        }
+
+        int ival = (int) Math.round(-val * _mileageConvFactor);
+
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putInt(ival);
         byte[] data = buffer.array();
         System.arraycopy(data, 0, _data, offset, size);
     }
