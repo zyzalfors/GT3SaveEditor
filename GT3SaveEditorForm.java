@@ -605,7 +605,7 @@ public class GT3SaveEditorForm extends JFrame {
         for(int i = rows.length - 1; i >= 0; i--)
             model.removeRow(_carCarsTable.convertRowIndexToModel(rows[i]));
 
-        _texts.get(7).setText(String.valueOf(_carCarsTable.getRowCount()));
+        _texts.get(8).setText(String.valueOf(_carCarsTable.getRowCount()));
      }
 
     private void ExportCareerCars() {
@@ -648,7 +648,7 @@ public class GT3SaveEditorForm extends JFrame {
             _deleteCarCars.setEnabled(rowCount > 0);
             _exportCarCars.setEnabled(rowCount > 0);
 
-            _texts.get(7).setText(String.valueOf(rowCount));
+            _texts.get(8).setText(String.valueOf(rowCount));
             JOptionPane.showMessageDialog(this, String.format("%d car(s) imported", numCars), "Info", JOptionPane.INFORMATION_MESSAGE);
         }
         catch(Exception e) {
