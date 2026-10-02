@@ -360,7 +360,11 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private void AddEventHandlers() {
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) { OnClose(e); }
+        });
         _open.addActionListener((ActionEvent e) -> OpenSave());
         _update.addActionListener((ActionEvent e) -> UpdateSave());
         _close.addActionListener((ActionEvent e) -> CloseSave());
@@ -374,10 +378,28 @@ public class GT3SaveEditorForm extends JFrame {
         _importCarCars.addActionListener((ActionEvent e) -> ImportCareerCars());
     }
 
+    private boolean AskForLoadedSave() {
+        int res = JOptionPane.showOptionDialog(this, "Update current save?", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
+
+        if(res == JOptionPane.CLOSED_OPTION) return false;
+        else if(res == JOptionPane.YES_OPTION) UpdateSave();
+        return true;
+    }
+
+    private void OnClose(WindowEvent e) {
+        if(_save != null)
+            if(!AskForLoadedSave()) return;
+        dispose();
+    }
+
     private void OpenSave() {
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle("Open save");
         if(chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return;
+
+        if(_save != null)
+            if(!AskForLoadedSave()) return;
+
         PrintSave(chooser.getSelectedFile().getAbsolutePath());
     }
 
@@ -482,9 +504,9 @@ public class GT3SaveEditorForm extends JFrame {
         }
     }
 
-    private void UpdateSave() {
+    private boolean UpdateSave() {
         try {
-            if(_save == null) return;
+            if(_save == null) return false;
 
             int days = Integer.valueOf(_texts.get(2).getText());
             _save.UpdateInt(VALUE.DAYS, days);
@@ -537,9 +559,11 @@ public class GT3SaveEditorForm extends JFrame {
             _texts.get(1).setText(String.format("%08X", crc32));
 
             JOptionPane.showMessageDialog(this, "Save updated", "Info", JOptionPane.INFORMATION_MESSAGE);
+            return true;
         }
         catch(Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
 
@@ -698,7 +722,6 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private void CloseSave() {
-        UpdateSave();
-        ClearData();
+        if(UpdateSave()) ClearData();
     }
 }
