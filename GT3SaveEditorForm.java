@@ -382,7 +382,8 @@ public class GT3SaveEditorForm extends JFrame {
         int res = JOptionPane.showOptionDialog(this, "Update current save?", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
         if(res == JOptionPane.CLOSED_OPTION) return false;
-        else if(res == JOptionPane.YES_OPTION) UpdateSave();
+        else if(res == JOptionPane.YES_OPTION)
+            return UpdateSave();
         return true;
     }
 
