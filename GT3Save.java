@@ -358,7 +358,7 @@ public class GT3Save {
                 throw new IllegalArgumentException("Invalid value");
         }
 
-        int ival = (int) Math.round(-val * _mileageConvFactor);
+        int ival = (int) (-val * _mileageConvFactor);
 
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);

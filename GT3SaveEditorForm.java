@@ -420,7 +420,7 @@ public class GT3SaveEditorForm extends JFrame {
 
             double mileage = _save.GetDouble(VALUE.MILEAGE);
             _texts.get(7).setEnabled(true);
-            _texts.get(7).setText(String.format(Locale.US, "%.1f", mileage));
+            _texts.get(7).setText(String.valueOf(mileage));
 
             int carCount = _save.GetInt(VALUE.CAR_COUNT);
             _texts.get(8).setEnabled(true);
