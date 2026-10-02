@@ -5,7 +5,7 @@ The tool supports reading and editing raw save data, which can be extracted from
 
 The tool can read and modify several game parameters:
 * Language settings
-* Career progress: days, races, wins, money, prizes, trophies, bonus car count, licenses, and events
+* Career progress: days, races, wins, money, prizes, mileage, trophies, bonus car count, licenses, and events
 * Career cars: edit/delete individual cars, import/export individual cars, or import/export the entire garage
 * Arcade progress: events, tracks, and cars
 
