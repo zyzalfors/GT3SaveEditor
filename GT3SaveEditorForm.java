@@ -579,8 +579,8 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private void AllHardArcadeEventProgress() {
-        for(JComboBox<String> combo : _arcProgCombos)
-            combo.setSelectedItem("Hard");
+        for(int i = 0; i <_arcProgCombos.size() - 2; i++)
+            _arcProgCombos.get(i).setSelectedItem("Hard");
     }
 
     private String[][] GetCareerCars(ArrayList<Integer> rows) {

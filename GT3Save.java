@@ -582,7 +582,6 @@ public class GT3Save {
 
     public String[] GetArcadeProgress() {
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
-
         String[] progress = new String[arcadeTracks.length + 2];
         byte[] data = new byte[arcadeEventProgress.get("None").length];
 
