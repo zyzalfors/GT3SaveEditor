@@ -535,7 +535,7 @@ public class GT3Save {
     }
 
     public void UpdateCareerLicenseProgress(String[] progress) {
-        if(progress.length > careerLicenses.length * testsPerLicense)
+        if(progress.length != careerLicenses.length * testsPerLicense)
             throw new IllegalArgumentException(String.format("Invalid career licence progress length: %d", progress.length));
 
         int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
@@ -567,7 +567,7 @@ public class GT3Save {
     }
 
     public void UpdateCareerEventProgress(String[] progress) {
-        if(progress.length > careerEventCount)
+        if(progress.length != careerEventCount)
             throw new IllegalArgumentException(String.format("Invalid career event progress length: %d", progress.length));
 
         int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
@@ -616,7 +616,7 @@ public class GT3Save {
     }
 
     public void UpdateArcadeProgress(String[] progress) {
-        if(progress.length > arcadeTracks.length + 2)
+        if(progress.length != arcadeTracks.length + 2)
             throw new IllegalArgumentException(String.format("Invalid arcade progress length: %d", progress.length));
 
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
