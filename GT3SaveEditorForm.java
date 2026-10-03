@@ -643,7 +643,7 @@ public class GT3SaveEditorForm extends JFrame {
             for(int row : _carCarsTable.getSelectedRows())
                 rows.add(row);
 
-            String[][] cars = GetCareerCars(rows);
+            String[][] cars = GetCareerCars(rows.size() > 0 ? rows : null);
             _save.ExportCareerCars(cars, chooser.getSelectedFile().getAbsolutePath());
             JOptionPane.showMessageDialog(this, String.format("%s car(s) exported", cars.length), "Info", JOptionPane.INFORMATION_MESSAGE);
         }
