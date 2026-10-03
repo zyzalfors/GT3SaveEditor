@@ -388,7 +388,7 @@ public class GT3Save {
                 if(languages.containsKey(val))
                     _data[_langOffset] = languages.get(val);
                 else
-                    throw new IllegalArgumentException(String.format("Invalid language: %s", val));
+                    throw new IllegalArgumentException(String.format("Invalid language '%s'", val));
                 break;
 
             default:
@@ -453,16 +453,16 @@ public class GT3Save {
         for(int i = 0; i < size; i++) {
             String car = String.join("", cars[i]);
             if(car.length() != _carSize * 2)
-                throw new IllegalArgumentException(String.format("Invalid car %d data", i));
+                throw new IllegalArgumentException(String.format("Invalid length '%d' for car %d data", car.length(), i));
 
             for(int j = 0; j < car.length(); j += 2) {
                 int high = Character.digit(car.charAt(j), 16);
                 int low = Character.digit(car.charAt(j + 1), 16);
 
                 if(high < 0)
-                    throw new IllegalArgumentException(String.format("Invalid car %d data at %d", i, j));
+                    throw new IllegalArgumentException(String.format("Invalid data '%c' for car %d at %d", car.charAt(j), i, j));
                 if(low < 0)
-                    throw new IllegalArgumentException(String.format("Invalid car %d data at %d", i, j + 1));
+                    throw new IllegalArgumentException(String.format("Invalid data '%c' for car %d at %d", car.charAt(j + 1), i, j + 1));
 
                 carData[j / 2] = (byte) ((high << 4) | low);
             }
@@ -474,7 +474,7 @@ public class GT3Save {
 
     public void ExportCareerCars(String[][] cars, String path) throws Exception {
         if(cars.length == 0)
-            throw new IllegalArgumentException(String.format("Invalid car data length: %d", cars.length));
+            throw new IllegalArgumentException(String.format("Invalid length '%d' for car data", cars.length));
 
         byte[] data = new byte[cars.length * _carSize];
         WriteBinCars(data, cars.length, 0, cars);
@@ -484,13 +484,14 @@ public class GT3Save {
     public String[][] ImportCareerCars(String path) throws Exception {
          byte[] carData = Files.readAllBytes(Paths.get(path));
          if(carData.length == 0 || carData.length % _carSize != 0)
-             throw new IllegalArgumentException(String.format("Invalid file size: %d", carData.length));
+             throw new IllegalArgumentException(String.format("Invalid file size '%d'", carData.length));
 
-         return GetStrCars(carData, carData.length / _carSize, 0);
+         int carCount = Math.min(carData.length / _carSize, maxCarCount);
+         return GetStrCars(carData, carCount, 0);
     }
 
     public String[][] GetCareerCars() {
-        int carCount = GetInt(VALUE.CAR_COUNT);
+        int carCount = Math.min(GetInt(VALUE.CAR_COUNT), maxCarCount);
         return GetStrCars(_data, carCount, _firstCarOffset);
     }
 
@@ -536,14 +537,14 @@ public class GT3Save {
 
     public void UpdateCareerLicenseProgress(String[] progress) {
         if(progress.length != careerLicenses.length * testsPerLicense)
-            throw new IllegalArgumentException(String.format("Invalid career licence progress length: %d", progress.length));
+            throw new IllegalArgumentException(String.format("Invalid length '%d' for career licence progress", progress.length));
 
         int firstCarLicProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS);
         int carLicProgSize = careerLicenseProgress.get("None").length;
 
         for(int i = 0; i < progress.length; i++) {
             if(!careerLicenseProgress.containsKey(progress[i]))
-                throw new IllegalArgumentException(String.format("Invalid career license progress: %s", progress[i]));
+                throw new IllegalArgumentException(String.format("Invalid career license progress '%s'", progress[i]));
             byte[] data = careerLicenseProgress.get(progress[i]);
             int offset = firstCarLicProgOffset + _careerLicenseProgressSkip * i;
             System.arraycopy(data, 0, _data, offset, carLicProgSize);
@@ -568,13 +569,13 @@ public class GT3Save {
 
     public void UpdateCareerEventProgress(String[] progress) {
         if(progress.length != careerEventCount)
-            throw new IllegalArgumentException(String.format("Invalid career event progress length: %d", progress.length));
+            throw new IllegalArgumentException(String.format("Invalid length '%d' for career event progress", progress.length));
 
         int firstCarEvProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip;
 
         for(int i = 0; i < progress.length; i++) {
             if(!careerEventProgress.containsKey(progress[i]))
-                throw new IllegalArgumentException(String.format("Invalid career event progress: %s", progress[i]));
+                throw new IllegalArgumentException(String.format("Invalid career event progress '%s'", progress[i]));
             int offset = firstCarEvProgOffset + _careerEventProgressSkip * i;
             _data[offset] = careerEventProgress.get(progress[i]);
         }
@@ -617,13 +618,13 @@ public class GT3Save {
 
     public void UpdateArcadeProgress(String[] progress) {
         if(progress.length != arcadeTracks.length + 2)
-            throw new IllegalArgumentException(String.format("Invalid arcade progress length: %d", progress.length));
+            throw new IllegalArgumentException(String.format("Invalid length '%d' for arcade progress", progress.length));
 
         int firstArcEvEasyProgOffset = _firstCarOffset + _carSize * GetInt(VALUE.CAR_COUNT) + _carsSkipSize * GetInt(VALUE.CARS_SKIPS) + careerLicenses.length * testsPerLicense * _careerLicenseProgressSkip + _arcadeEventEasyProgressSkip;
 
         for(int i = 0; i < progress.length - 2; i++) {
             if(!arcadeEventProgress.containsKey(progress[i]))
-                throw new IllegalArgumentException(String.format("Invalid arcade event progress: %s", progress[i]));
+                throw new IllegalArgumentException(String.format("Invalid arcade event progress '%s'", progress[i]));
             byte[] data = arcadeEventProgress.get(progress[i]);
 
             for(int j = 0; j < data.length; j++) {
@@ -633,11 +634,11 @@ public class GT3Save {
         }
 
         if(!arcadeTracksProgress.containsKey(progress[progress.length - 2]))
-            throw new IllegalArgumentException(String.format("Invalid arcade tracks progress: %s", progress[progress.length - 2]));
+            throw new IllegalArgumentException(String.format("Invalid arcade tracks progress '%s'", progress[progress.length - 2]));
         _data[_arcadeTracksProgressOffset] = arcadeTracksProgress.get(progress[progress.length - 2]);
 
         if(!arcadeCarsProgress.containsKey(progress[progress.length - 1]))
-            throw new IllegalArgumentException(String.format("Invalid arcade cars progress: %s", progress[progress.length - 1]));
+            throw new IllegalArgumentException(String.format("Invalid arcade cars progress '%s'", progress[progress.length - 1]));
         byte[] data = arcadeCarsProgress.get(progress[progress.length - 1]);
 
         for(int i = 0; i < data.length; i++) {
