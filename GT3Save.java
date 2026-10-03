@@ -460,9 +460,9 @@ public class GT3Save {
                 int low = Character.digit(car.charAt(j + 1), 16);
 
                 if(high < 0)
-                    throw new IllegalArgumentException(String.format("Invalid data '%c' for car %d at %d", car.charAt(j), i, j));
+                    throw new IllegalArgumentException(String.format("Invalid char '%c' for car %d data at %d", car.charAt(j), i, j));
                 if(low < 0)
-                    throw new IllegalArgumentException(String.format("Invalid data '%c' for car %d at %d", car.charAt(j + 1), i, j + 1));
+                    throw new IllegalArgumentException(String.format("Invalid char '%c' for car %d data at %d", car.charAt(j + 1), i, j + 1));
 
                 carData[j / 2] = (byte) ((high << 4) | low);
             }
