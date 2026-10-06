@@ -33,7 +33,7 @@ public class GT3Save {
 
     private static final int _mileageOffset = 96;
     private static final int _mileageSize = 4;
-    private static final double _mileageConvFactor = 500.0;
+    private static final double _mileageConvFactor = 500;
 
     private static final int _carCountOffset = 112;
     private static final int _carCountSize = 4;
@@ -83,6 +83,10 @@ public class GT3Save {
     private static final int _langOffset = 264;
     public static final Map<String, Byte> languages = Map.of("ES", (byte) 0xF9, "IT", (byte) 0xFA, "DE", (byte) 0xFB, "FR", (byte) 0xFC, "EN-GB", (byte) 0xFD, "EN-US", (byte) 0xFE, "JA", (byte) 0xFF);
 
+    private static final int _GTCMoneyFlagOffset = 364;
+    private static final int _GTCMoneyFlagSize = 4;
+    private static final int _GTCMoneyFlagOn = 0x12345678;
+
     private static final int _firstCarOffset = 368;
     private static final int _carSize = 516;
     public static final int maxCarCount = 200;
@@ -113,7 +117,7 @@ public class GT3Save {
     public static final int careerEventCount = 364;
     public static final Map<String, Byte> careerEventProgress = Map.of("None", (byte) 0xF7, "Bronze", (byte) 0xFD, "Silver", (byte) 0xFE, "Gold", (byte) 0xFF);
 
-    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, MILEAGE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE};
+    public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, MILEAGE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE, GTCMONEY};
 
     public GT3Save(String path) throws Exception {
         _path = path;
@@ -147,49 +151,49 @@ public class GT3Save {
         boolean conv = true;
 
         switch(value) {
-            case END_OF_SAVE:
+            case VALUE.END_OF_SAVE:
                 offset = _endOfSaveOffset;
                 size = _endOfSaveSize;
                 conv = false;
                 break;
 
-            case CRC32:
+            case VALUE.CRC32:
                 offset = _crc32Offset;
                 size = _crc32Size;
                 conv = false;
                 break;
 
-            case DAYS:
+            case VALUE.DAYS:
                 offset = _daysOffset;
                 size = _daysSize;
                 break;
 
-            case RACES:
+            case VALUE.RACES:
                 offset = _racesOffset;
                 size = _racesSize;
                 break;
 
-            case WINS:
+            case VALUE.WINS:
                 offset = _winsOffset;
                 size = _winsSize;
                 break;
 
-            case CAR_COUNT:
+            case VALUE.CAR_COUNT:
                 offset = _carCountOffset;
                 size = _carCountSize;
                 break;
 
-            case CARS_SKIPS:
+            case VALUE.CARS_SKIPS:
                 offset = _carsSkipsOffset;
                 size = _carsSkipsSize;
                 break;
 
-            case TROPHIES:
+            case VALUE.TROPHIES:
                 offset = _trophiesOffset;
                 size = _trophiesSize;
                 break;
 
-            case BONUS_CARS:
+            case VALUE.BONUS_CARS:
                 offset = _bonusCarsOffset;
                 size = _bonusCarsSize;
                 break;
@@ -212,44 +216,44 @@ public class GT3Save {
         boolean conv = true;
 
         switch(value) {
-            case END_OF_SAVE:
+            case VALUE.END_OF_SAVE:
                 offset = _endOfSaveOffset;
                 size = _endOfSaveSize;
                 conv = false;
                 break;
 
-            case CRC32:
+            case VALUE.CRC32:
                 offset = _crc32Offset;
                 size = _crc32Size;
                 conv = false;
                 break;
 
-            case DAYS:
+            case VALUE.DAYS:
                 offset = _daysOffset;
                 size = _daysSize;
                 break;
 
-            case RACES:
+            case VALUE.RACES:
                 offset = _racesOffset;
                 size = _racesSize;
                 break;
 
-            case WINS:
+            case VALUE.WINS:
                 offset = _winsOffset;
                 size = _winsSize;
                 break;
 
-            case CAR_COUNT:
+            case VALUE.CAR_COUNT:
                 offset = _carCountOffset;
                 size = _carCountSize;
                 break;
 
-            case TROPHIES:
+            case VALUE.TROPHIES:
                 offset = _trophiesOffset;
                 size = _trophiesSize;
                 break;
 
-            case BONUS_CARS:
+            case VALUE.BONUS_CARS:
                 offset = _bonusCarsOffset;
                 size = _bonusCarsSize;
                 break;
@@ -272,12 +276,12 @@ public class GT3Save {
         int size = 0;
 
         switch(value) {
-            case MONEY:
+            case VALUE.MONEY:
                 offset = _moneyOffset;
                 size = _moneySize;
                 break;
 
-            case PRIZE:
+            case VALUE.PRIZE:
                 offset = _prizeOffset;
                 size = _prizeSize;
                 break;
@@ -299,12 +303,12 @@ public class GT3Save {
         int size = 0;
 
         switch(value) {
-            case MONEY:
+            case VALUE.MONEY:
                 offset = _moneyOffset;
                 size = _moneySize;
                 break;
 
-            case PRIZE:
+            case VALUE.PRIZE:
                 offset = _prizeOffset;
                 size = _prizeSize;
                 break;
@@ -327,7 +331,7 @@ public class GT3Save {
         int size = 0;
 
         switch(value) {
-            case MILEAGE:
+            case VALUE.MILEAGE:
                 offset = _mileageOffset;
                 size = _mileageSize;
                 break;
@@ -339,7 +343,10 @@ public class GT3Save {
         byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        double val = -1 * ((double) buffer.getInt() / _mileageConvFactor);
+        double val = 0;
+
+        if(value == VALUE.MILEAGE)
+            val = -1 * ((double) buffer.getInt() / _mileageConvFactor);
 
         return val;
     }
@@ -347,18 +354,68 @@ public class GT3Save {
     public void UpdateDouble(VALUE value, double val) {
         int offset = 0;
         int size = 0;
+        int ival = 0;
 
         switch(value) {
-            case MILEAGE:
+            case VALUE.MILEAGE:
                 offset = _mileageOffset;
                 size = _mileageSize;
+                ival = (int) (-1 * val * _mileageConvFactor);
                 break;
 
             default:
                 throw new IllegalArgumentException("Invalid value");
         }
 
-        int ival = (int) (-val * _mileageConvFactor);
+        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.putInt(ival);
+        byte[] data = buffer.array();
+        System.arraycopy(data, 0, _data, offset, size);
+    }
+
+    public boolean GetBool(VALUE value) {
+        int offset = 0;
+        int size = 0;
+        int ival = 0;
+
+        switch(value) {
+            case VALUE.GTCMONEY:
+                offset = _GTCMoneyFlagOffset;
+                size = _GTCMoneyFlagSize;
+                ival = _GTCMoneyFlagOn;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid value");
+        }
+
+        byte[] data = Arrays.copyOfRange(_data, offset, offset + size);
+        ByteBuffer buffer = ByteBuffer.wrap(data);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        int val = buffer.getInt();
+        val = -1 * (val + 1);
+
+        return val == ival;
+    }
+
+    public void UpdateBool(VALUE value, boolean val) {
+        int offset = 0;
+        int size = 0;
+        int ival = 0;
+
+        switch(value) {
+            case VALUE.GTCMONEY:
+                offset = _GTCMoneyFlagOffset;
+                size = _GTCMoneyFlagSize;
+                ival = val ? _GTCMoneyFlagOn : 0;
+                break;
+
+            default:
+                throw new IllegalArgumentException("Invalid value");
+        }
+
+        ival = -1 * (ival + 1);
 
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -369,7 +426,7 @@ public class GT3Save {
 
     public String GetStr(VALUE value) {
         switch(value) {
-            case LANGUAGE:
+            case VALUE.LANGUAGE:
                 byte b = _data[_langOffset];
                 for(String lang : languages.keySet())
                     if(languages.get(lang) == b) return lang;
@@ -384,7 +441,7 @@ public class GT3Save {
 
     public void UpdateStr(VALUE value, String val) {
         switch(value) {
-            case LANGUAGE:
+            case VALUE.LANGUAGE:
                 if(languages.containsKey(val))
                     _data[_langOffset] = languages.get(val);
                 else
