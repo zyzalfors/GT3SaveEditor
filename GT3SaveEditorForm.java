@@ -10,6 +10,7 @@ public class GT3SaveEditorForm extends JFrame {
     private static final String _title = "GT3 Save Editor";
     private ArrayList<JTextField> _texts = new ArrayList<JTextField>();
     private JComboBox<String> _langCombo;
+    private JCheckBox _GTCMoneyCheck;
     private JTable _carCarsTable;
     private JMenuItem _copyCarCar;
     private JMenuItem _pasteCarCar;
@@ -77,11 +78,11 @@ public class GT3SaveEditorForm extends JFrame {
     }
 
     private JPanel InitGeneralPanel() {
-        String[] labels = new String[] {"Path", "CRC32", "Language"};
+        String[] labels = new String[] {"Path", "CRC32", "Language", "GTC money"};
         JPanel panel = new JPanel(null);
 
         int i;
-        for(i = 0; i < labels.length - 1; i++) {
+        for(i = 0; i < labels.length - 2; i++) {
             JLabel label = new JLabel(labels[i] + ":");
             label.setBounds(10, 5 + i * 30, 80, 20);
             panel.add(label);
@@ -105,6 +106,16 @@ public class GT3SaveEditorForm extends JFrame {
         _langCombo.setSelectedIndex(-1);
         _langCombo.setEnabled(false);
         panel.add(_langCombo);
+
+        i++;
+        label = new JLabel(labels[i] + ":");
+        label.setBounds(10, 5 + i * 30, 80, 20);
+        panel.add(label);
+
+        _GTCMoneyCheck = new JCheckBox("");
+        _GTCMoneyCheck.setBounds(80, 5 + i * 30, 300, 20);
+        _GTCMoneyCheck.setEnabled(false);
+        panel.add(_GTCMoneyCheck);
 
         panel.setPreferredSize(new Dimension(400, 35 + labels.length * 30));
 
@@ -469,6 +480,10 @@ public class GT3SaveEditorForm extends JFrame {
             _langCombo.setEnabled(true);
             _langCombo.setSelectedItem(lang);
 
+            boolean GTCMoney = _save.GetBool(VALUE.GTCMONEY);
+            _GTCMoneyCheck.setEnabled(true);
+            _GTCMoneyCheck.setSelected(GTCMoney);
+
             DefaultTableModel model = (DefaultTableModel) _carCarsTable.getModel();
             model.setRowCount(0);
             for(Object[] car : _save.GetCareerCars())
@@ -542,6 +557,9 @@ public class GT3SaveEditorForm extends JFrame {
 
             String lang = (String) _langCombo.getSelectedItem();
             _save.UpdateStr(VALUE.LANGUAGE, lang);
+
+            boolean GTCMoney = _GTCMoneyCheck.isSelected();
+            _save.UpdateBool(VALUE.GTCMONEY, GTCMoney);
 
             String[][] cars = GetCareerCars(null);
             _save.UpdateCareerCars(cars);
@@ -699,6 +717,9 @@ public class GT3SaveEditorForm extends JFrame {
 
         _langCombo.setSelectedIndex(-1);
         _langCombo.setEnabled(false);
+
+        _GTCMoneyCheck.setSelected(false);
+        _GTCMoneyCheck.setEnabled(false);
 
         ((DefaultTableModel) _carCarsTable.getModel()).setRowCount(0);
         _copyCarCar.setEnabled(false);
