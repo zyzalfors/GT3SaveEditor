@@ -376,20 +376,26 @@ public class GT3SaveEditorForm extends JFrame {
             @Override
             public void windowClosing(WindowEvent e) { OnClose(e); }
         });
-        _open.addActionListener((ActionEvent e) -> OpenSave());
-        _update.addActionListener((ActionEvent e) -> UpdateSave());
-        _close.addActionListener((ActionEvent e) -> CloseSave());
-        _allGoldCarLicProg.addActionListener((ActionEvent e) -> AllGoldCareerLicenseProgress());
-        _allGoldCarEvProg.addActionListener((ActionEvent e) -> AllGoldCareerEventProgress());
-        _allHardArcEvProg.addActionListener((ActionEvent e) -> AllHardArcadeEventProgress());
-        _copyCarCar.addActionListener((ActionEvent e) -> CopyCareerCar());
-        _pasteCarCar.addActionListener((ActionEvent e) -> PasteCareerCar());
-        _deleteCarCars.addActionListener((ActionEvent e) -> DeleteCareerCar());
-        _exportCarCars.addActionListener((ActionEvent e) -> ExportCareerCars());
-        _importCarCars.addActionListener((ActionEvent e) -> ImportCareerCars());
+
+        _open.addActionListener(_ -> OpenSave());
+        _update.addActionListener(_ -> UpdateSave());
+        _close.addActionListener(_ -> CloseSave());
+
+        _allGoldCarLicProg.addActionListener(_ -> AllGoldCareerLicenseProgress());
+        _allGoldCarEvProg.addActionListener(_ -> AllGoldCareerEventProgress());
+        _allHardArcEvProg.addActionListener(_ -> AllHardArcadeEventProgress());
+
+        _carCarsTable.getSelectionModel().addListSelectionListener(e -> {
+            if(!e.getValueIsAdjusting()) EnableCareerCarsPopupButtons();
+        });
+        _copyCarCar.addActionListener(_ -> CopyCareerCar());
+        _pasteCarCar.addActionListener(_ -> PasteCareerCar());
+        _deleteCarCars.addActionListener(_ -> DeleteCareerCar());
+        _exportCarCars.addActionListener(_ -> ExportCareerCars());
+        _importCarCars.addActionListener(_ -> ImportCareerCars());
     }
 
-    private boolean AskForLoadedSave() {
+    private boolean AskConfirmForLoadedSave() {
         int res = JOptionPane.showOptionDialog(this, "Update current save?", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
         switch(res) {
@@ -407,7 +413,7 @@ public class GT3SaveEditorForm extends JFrame {
 
     private void OnClose(WindowEvent e) {
         if(_save != null)
-            if(!AskForLoadedSave()) return;
+            if(!AskConfirmForLoadedSave()) return;
         dispose();
     }
 
@@ -417,7 +423,7 @@ public class GT3SaveEditorForm extends JFrame {
         if(chooser.showOpenDialog(null) != JFileChooser.APPROVE_OPTION) return;
 
         if(_save != null)
-            if(!AskForLoadedSave()) return;
+            if(!AskConfirmForLoadedSave()) return;
 
         PrintSave(chooser.getSelectedFile().getAbsolutePath());
     }
@@ -489,11 +495,10 @@ public class GT3SaveEditorForm extends JFrame {
             for(Object[] car : _save.GetCareerCars())
                 model.addRow(car);
 
-            int rowCount = _carCarsTable.getRowCount();
-            _copyCarCar.setEnabled(rowCount > 0);
+            _copyCarCar.setEnabled(false);
             _pasteCarCar.setEnabled(false);
-            _deleteCarCars.setEnabled(rowCount > 0);
-            _exportCarCars.setEnabled(rowCount > 0);
+            _deleteCarCars.setEnabled(false);
+            _exportCarCars.setEnabled(false);
             _importCarCars.setEnabled(true);
             _carData = new String[_carCarsTable.getColumnCount()];
 
@@ -658,6 +663,14 @@ public class GT3SaveEditorForm extends JFrame {
         _texts.get(8).setText(String.valueOf(_carCarsTable.getRowCount()));
      }
 
+    private void EnableCareerCarsPopupButtons() {
+        int len = _carCarsTable.getSelectedRows().length;
+        _copyCarCar.setEnabled(len == 1);
+        _pasteCarCar.setEnabled(len == 1 && _carData[0] != null);
+        _deleteCarCars.setEnabled(len > 0);
+        _exportCarCars.setEnabled(len > 0);
+    }
+
     private void ExportCareerCars() {
         try {
             JFileChooser chooser = new JFileChooser();
@@ -693,12 +706,7 @@ public class GT3SaveEditorForm extends JFrame {
                 numCars++;
             }
 
-            int rowCount = _carCarsTable.getRowCount();
-            _copyCarCar.setEnabled(rowCount > 0);
-            _deleteCarCars.setEnabled(rowCount > 0);
-            _exportCarCars.setEnabled(rowCount > 0);
-
-            _texts.get(8).setText(String.valueOf(rowCount));
+            _texts.get(8).setText(String.valueOf(_carCarsTable.getRowCount()));
             JOptionPane.showMessageDialog(this, String.format("%d car(s) imported", numCars), "Info", JOptionPane.INFORMATION_MESSAGE);
         }
         catch(Exception e) {

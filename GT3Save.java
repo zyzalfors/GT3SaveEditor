@@ -274,6 +274,7 @@ public class GT3Save {
     public long GetLong(VALUE value) {
         int offset = 0;
         int size = 0;
+        boolean conv = true;
 
         switch(value) {
             case VALUE.MONEY:
@@ -295,12 +296,13 @@ public class GT3Save {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         long val = buffer.getLong();
 
-        return -1 * (val + 1);
+        return conv ? -1 * (val + 1) : val;
     }
 
     public void UpdateLong(VALUE value, long val) {
         int offset = 0;
         int size = 0;
+        boolean conv = true;
 
         switch(value) {
             case VALUE.MONEY:
@@ -317,7 +319,7 @@ public class GT3Save {
                 throw new IllegalArgumentException("Invalid value");
         }
 
-        val = -1 * (val + 1);
+        if(conv) val = -1 * (val + 1);
 
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -378,6 +380,7 @@ public class GT3Save {
         int offset = 0;
         int size = 0;
         int ival = 0;
+        boolean conv = true;
 
         switch(value) {
             case VALUE.GTCMONEY:
@@ -394,7 +397,7 @@ public class GT3Save {
         ByteBuffer buffer = ByteBuffer.wrap(data);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         int val = buffer.getInt();
-        val = -1 * (val + 1);
+        if(conv) val = -1 * (val + 1);
 
         return val == ival;
     }
@@ -403,6 +406,7 @@ public class GT3Save {
         int offset = 0;
         int size = 0;
         int ival = 0;
+        boolean conv = true;
 
         switch(value) {
             case VALUE.GTCMONEY:
@@ -415,7 +419,7 @@ public class GT3Save {
                 throw new IllegalArgumentException("Invalid value");
         }
 
-        ival = -1 * (ival + 1);
+        if(conv) ival = -1 * (ival + 1);
 
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.order(ByteOrder.LITTLE_ENDIAN);
