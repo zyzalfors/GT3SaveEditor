@@ -3,7 +3,7 @@ This GUI tool allows users to read and edit save files for the PlayStation 2 gam
 
 The tool can read and modify several game parameters:
 * General settings: language, and money import from Gran Turismo Concept
-* Career progress: days, races, wins, money, prizes, mileage, trophies, bonus car count, licenses, and events
+* Career progress: days, races, wins, money, prize, car count, mileage, trophies, bonus car count, licenses, and events
 * Career cars: edit/delete/import/export individual cars or entire garage
 * Arcade progress: events, tracks, and cars
 
