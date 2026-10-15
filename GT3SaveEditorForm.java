@@ -22,7 +22,7 @@ public class GT3SaveEditorForm extends JFrame {
     private ArrayList<JComboBox<String>> _carEvProgCombos = new ArrayList<JComboBox<String>>();
     private ArrayList<JComboBox<String>> _arcProgCombos = new ArrayList<JComboBox<String>>();
     private JButton _allGoldCarLicProg;
-    private JButton _allGoldCarEvProg;
+    private JButton _all1stCarEvProg;
     private JButton _allHardArcEvProg;
     private JMenuItem _open;
     private JMenuItem _update;
@@ -267,10 +267,10 @@ public class GT3SaveEditorForm extends JFrame {
             }
         }
 
-        _allGoldCarEvProg = new JButton("All gold");
-        _allGoldCarEvProg.setBounds(10, 5 + rows * comboSpacingY, 80, 20);
-        _allGoldCarEvProg.setEnabled(false);
-        panel.add(_allGoldCarEvProg);
+        _all1stCarEvProg = new JButton("All 1st");
+        _all1stCarEvProg.setBounds(10, 5 + rows * comboSpacingY, 80, 20);
+        _all1stCarEvProg.setEnabled(false);
+        panel.add(_all1stCarEvProg);
 
         int contentWidth = 20 + cols * comboSpacingX;
         int contentHeight = 35 + rows * comboSpacingY;
@@ -382,7 +382,7 @@ public class GT3SaveEditorForm extends JFrame {
         _close.addActionListener(_ -> CloseSave());
 
         _allGoldCarLicProg.addActionListener(_ -> AllGoldCareerLicenseProgress());
-        _allGoldCarEvProg.addActionListener(_ -> AllGoldCareerEventProgress());
+        _all1stCarEvProg.addActionListener(_ -> All1stCareerEventProgress());
         _allHardArcEvProg.addActionListener(_ -> AllHardArcadeEventProgress());
 
         _carCarsTable.getSelectionModel().addListSelectionListener(e -> {
@@ -514,7 +514,7 @@ public class GT3SaveEditorForm extends JFrame {
                 _carEvProgCombos.get(i).setEnabled(true);
                 _carEvProgCombos.get(i).setSelectedItem(carEvProg[i]);
             }
-            _allGoldCarEvProg.setEnabled(true);
+            _all1stCarEvProg.setEnabled(true);
 
             String[] arcProg = _save.GetArcadeProgress();
             for(int i = 0; i < arcProg.length; i++) {
@@ -603,9 +603,9 @@ public class GT3SaveEditorForm extends JFrame {
             combo.setSelectedItem("Gold");
     }
 
-    private void AllGoldCareerEventProgress() {
+    private void All1stCareerEventProgress() {
         for(JComboBox<String> combo : _carEvProgCombos)
-            combo.setSelectedItem("Gold");
+            combo.setSelectedItem("1st");
     }
 
     private void AllHardArcadeEventProgress() {
@@ -747,7 +747,7 @@ public class GT3SaveEditorForm extends JFrame {
             combo.setSelectedIndex(-1);
             combo.setEnabled(false);
         }
-        _allGoldCarEvProg.setEnabled(false);
+        _all1stCarEvProg.setEnabled(false);
 
         for(JComboBox<String> combo : _arcProgCombos) {
             combo.setSelectedIndex(-1);

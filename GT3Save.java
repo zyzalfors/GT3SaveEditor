@@ -115,7 +115,7 @@ public class GT3Save {
 
     private static final int _careerEventProgressSkip = 4;
     public static final int careerEventCount = 364;
-    public static final Map<String, Byte> careerEventProgress = Map.of("None", (byte) 0xF7, "Bronze", (byte) 0xFD, "Silver", (byte) 0xFE, "Gold", (byte) 0xFF);
+    public static final Map<String, Byte> careerEventProgress = Map.of("None", (byte) 0xF7, "6th", (byte) 0xFA, "5th", (byte) 0xFB, "4th", (byte) 0xFC, "3rd", (byte) 0xFD, "2nd", (byte) 0xFE, "1st", (byte) 0xFF);
 
     public static enum VALUE {END_OF_SAVE, CRC32, DAYS, RACES, WINS, MONEY, PRIZE, MILEAGE, CAR_COUNT, CARS_SKIPS, TROPHIES, BONUS_CARS, LANGUAGE, GTCMONEY};
 
