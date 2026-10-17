@@ -18,5 +18,5 @@ Similar repositories, tools and resources:
 - https://www.ps2savetools.com/download/gt3-garage-editor
 - https://www.reddit.com/r/ps2/comments/a23amw/howto_edit_gran_turismo_3_save_game_language
 
-More details about Gran Turismo 2 save files can be found in the following resources:
+More details about Gran Turismo 3 save files can be found in the following resources:
 - https://web.archive.org/web/20080221175455/http://www.rogs.dial.pipex.com/GT3Ref.htm
